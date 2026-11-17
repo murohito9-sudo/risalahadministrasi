@@ -52,6 +52,7 @@
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+.wali-input{width:100%;min-width:170px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-size:12.5px;font-family:inherit}.wali-input:disabled{opacity:.7}
 </style>
 </head>
 <body>
@@ -158,10 +159,10 @@
         <form id="formIzin">
           <div class="form-grid">
             <div class="form-group"><label>Nama Pemohon</label><div class="autocomplete-wrap"><input type="text" id="fNamaInput" placeholder="Ketik nama santri..." autocomplete="off" required><input type="hidden" id="fNama"><div class="autocomplete-list" id="autocompleteList"></div></div></div>
-            <div class="form-group"><label>Kelas/Unit <span class="optional">(otomatis)</span></label><input type="text" id="fKelas" readonly placeholder="Akan terisi otomatis"></div>
+            <div class="form-group"><label>Kelas/Unit <span class="optional">(otomatis)</span></label><input type="text" id="fKelas" readonly placeholder="Akan terisi otomatis"></div><div class="form-group"><label>Wali Kelas <span class="optional">(otomatis)</span></label><input type="text" id="fWaliKelas" readonly placeholder="Akan terisi otomatis"></div>
             <div class="form-group"><label>Jenis Izin</label><select id="fJenis" required><option value="Normal">Normal</option><option value="Darurat">Darurat</option></select></div>
             <div class="form-group"><label>Tanggal Izin</label><input type="date" id="fTanggal" required></div>
-            <div class="form-group"><label>Nama Penjemput / No. Kontak <span class="optional">(opsional)</span></label><input type="text" id="fPenjemput" placeholder="Akan terisi dari kontak wali"></div>
+            <div class="form-group"><label>Nama Penjemput / No. Kontak <span class="optional">(opsional)</span></label><input type="text" id="fPenjemput" placeholder="Akan terisi dari kontak wali"><div style="font-size:11px;color:var(--text-muted);margin-top:5px;"><i class="fa-solid fa-circle-info"></i> Jika diisi nomor HP, kontak santri otomatis tersimpan ke data santri.</div></div>
             <div class="form-group"><label>Alasan Pulang</label><select id="fAlasan" required><option value="">-- Pilih --</option><option>Keperluan Keluarga</option><option>Sakit</option><option>Acara Keluarga</option><option>Lainnya</option></select></div>
           </div>
           <div class="form-group" style="margin-top:14px;">
@@ -182,6 +183,19 @@
           <button type="submit" class="btn btn-primary" style="margin-top:16px;"><i class="fa-solid fa-floppy-disk"></i> Simpan Permohonan</button>
         </form>
       </div>
+      <div class="card" style="margin-top:18px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+          <div>
+            <h3 style="margin:0;"><i class="fa-solid fa-chalkboard-user"></i> Data Wali Kelas</h3>
+            <p style="color:var(--text-muted);font-size:12px;margin-top:4px;">Nama wali kelas tiap kelas. Otomatis terisi di formulir permohonan di atas dan ikut tersimpan di setiap data izin.</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" onclick="simpanSemuaWali()"><i class="fa-solid fa-floppy-disk"></i> Simpan Semua</button>
+            <button type="button" class="btn btn-excel" onclick="exportSection('wali')"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>No</th><th>Kelas</th><th>Santri</th><th>Nama Wali Kelas</th><th>Aksi</th></tr></thead><tbody id="waliTable"></tbody></table></div>
+      </div>
     </section>
 
     <section class="section" id="normal">
@@ -189,7 +203,7 @@
       <div class="card">
         <div class="filter-bar"><div class="form-group"><label>Dari Tanggal</label><input type="date" id="filterDari" onchange="renderAll()"></div><div class="form-group"><label>Sampai Tanggal</label><input type="date" id="filterSampai" onchange="renderAll()"></div><button class="btn" onclick="resetFilterTanggal()"><i class="fa-solid fa-rotate-left"></i> Reset</button></div>
         <div class="bulk-bar" id="bulkIzinBar" style="display:none;"><span id="bulkIzinCount">0 dipilih</span><button class="btn btn-sm btn-danger" onclick="bulkDeleteIzin()"><i class="fa-solid fa-trash"></i> Hapus Terpilih</button></div>
-        <div class="table-wrap"><table><thead><tr><th class="th-check"><input type="checkbox" class="chk-pel" id="chkAllIzin" onclick="toggleAllIzin(this.checked)"></th><th>Tanggal</th><th>Nama</th><th>Kelas</th><th>Penjemput</th><th>Alasan</th><th>Batas Kembali</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="normalTable"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th class="th-check"><input type="checkbox" class="chk-pel" id="chkAllIzin" onclick="toggleAllIzin(this.checked)"></th><th>Tanggal</th><th>Nama</th><th>Kelas</th><th>Wali Kelas</th><th>Penjemput</th><th>Alasan</th><th>Batas Kembali</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="normalTable"></tbody></table></div>
       </div>
     </section>
 
@@ -197,7 +211,7 @@
       <div class="header"><div><h1>Izin Darurat</h1><p>Data izin darurat</p></div><div class="header-actions"><button class="btn btn-excel" onclick="exportSection('darurat')"><i class="fa-solid fa-file-excel"></i> <span>Export Excel</span></button></div></div>
       <div class="card">
         <div class="bulk-bar" id="bulkDaruratBar" style="display:none;"><span id="bulkDaruratCount">0 dipilih</span><button class="btn btn-sm btn-danger" onclick="bulkDeleteIzin()"><i class="fa-solid fa-trash"></i> Hapus Terpilih</button></div>
-        <div class="table-wrap"><table><thead><tr><th class="th-check"><input type="checkbox" class="chk-pel" id="chkAllDarurat" onclick="toggleAllIzin(this.checked)"></th><th>Tanggal</th><th>Nama</th><th>Kelas</th><th>Penjemput</th><th>Alasan</th><th>Batas Kembali</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="daruratTable"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th class="th-check"><input type="checkbox" class="chk-pel" id="chkAllDarurat" onclick="toggleAllIzin(this.checked)"></th><th>Tanggal</th><th>Nama</th><th>Kelas</th><th>Wali Kelas</th><th>Penjemput</th><th>Alasan</th><th>Batas Kembali</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="daruratTable"></tbody></table></div>
       </div>
     </section>
 
@@ -321,6 +335,8 @@
 
 <div class="modal-overlay" id="modalSantri"><div class="modal"><h3><i class="fa-solid fa-user-plus"></i> Tambah Santri</h3><form id="formSantri"><div class="form-group"><label>Nama Santri</label><input type="text" id="sNama" required></div><div class="form-group" style="margin-top:12px;"><label>Kelas/Unit</label><select id="sKelas" required></select></div><div class="form-group" style="margin-top:12px;"><label>Kontak Wali <span class="optional">(opsional)</span></label><input type="text" id="sKontak" placeholder="08xxxxxxxxxx"></div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal('modalSantri')">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div></form></div></div>
 
+<div class="modal-overlay" id="modalEditSantri"><div class="modal"><h3><i class="fa-solid fa-user-pen"></i> Edit Data Santri</h3><form id="formEditSantri"><input type="hidden" id="esId"><div style="background:var(--blue-mist);padding:12px 14px;border-radius:10px;margin-bottom:16px;border-left:3px solid var(--blue);"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;" id="esInfo">-</div><div style="font-size:11.5px;color:var(--text-muted);margin-top:3px;"><i class="fa-solid fa-circle-info"></i> Nama, kelas, dan kontak bisa diubah. Riwayat izin, pelanggaran &amp; pembekuan ikut diperbarui.</div></div><div class="form-group"><label>Nama Santri</label><input type="text" id="esNama" required></div><div class="form-group" style="margin-top:12px;"><label>Kelas/Unit <span class="optional">(untuk pindah kelas)</span></label><select id="esKelas" required></select></div><div class="form-group" style="margin-top:12px;"><label>Kontak Wali <span class="optional">(opsional)</span></label><input type="text" id="esKontak" placeholder="08xxxxxxxxxx"></div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal('modalEditSantri')">Batal</button><button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button></div></form></div></div>
+
 <div class="modal-overlay" id="modalKelas"><div class="modal" style="max-width:450px;"><h3><i class="fa-solid fa-chalkboard"></i> Tambah Kelas</h3><form id="formKelas"><div class="form-group"><label>Nama Kelas</label><input type="text" id="tkNama" placeholder="Contoh: 4 A" required></div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal('modalKelas')">Batal</button><button type="submit" class="btn btn-primary">Tambah</button></div></form></div></div>
 
 <div class="modal-overlay" id="modalKuotaSantri"><div class="modal" style="max-width:500px;"><h3><i class="fa-solid fa-user-clock"></i> Atur Kuota Izin</h3><div style="background:var(--blue-mist);padding:12px 14px;border-radius:10px;margin-bottom:16px;border-left:3px solid var(--blue);"><div style="font-weight:700;color:var(--blue-dark);font-size:13px;" id="mksNama">-</div><div style="font-size:11.5px;color:var(--text-muted);margin-top:3px;"><i class="fa-solid fa-graduation-cap"></i> Kelas: <span id="mksKelas">-</span></div></div><form id="formKuotaSantri"><input type="hidden" id="mksId"><div class="form-group"><label>Jatah Kuota (hari)</label><input type="number" id="mksKuota" min="0" max="365" required></div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal('modalKuotaSantri')">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div></form></div></div>
@@ -339,7 +355,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="seed-santri.js"></script>
 <script>
 /* KONFIGURASI */
 var ADMIN_PASSWORD='alrisalah1dekade',USER_PASSWORD='19082015',ADMIN_USERNAME='risalahadmin';
@@ -354,32 +369,590 @@ function escapeHtml(t){if(t===null||t===undefined)return'';var d=document.create
 function escapeAttr(t){return String(t===null||t===undefined?'':t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function isAdmin(){return currentUserRole==='admin'}
 
+function extractPhone(v){if(!v)return'';var m=String(v).match(/(?:\+?62|0)\s*8[0-9][0-9\s\-().]{5,}/);var s=m?m[0]:'';s=s.replace(/[^0-9+]/g,'');if(s.indexOf('+62')===0)s='0'+s.slice(3);else if(s.indexOf('62')===0&&s.length>10)s='0'+s.slice(2);return s.length>=9?s:''}
+function getWaliKelas(kelas){if(!kelas)return'';var v=waliKelas[kelas];return v?String(v).trim():''}
+function syncWaliKelasField(){var el=$('fWaliKelas');if(!el)return;var k=$('fKelas')?$('fKelas').value:'';el.value=k?(getWaliKelas(k)||'-'):''}
+function refreshWaliIzin(kelas){var baru=getWaliKelas(kelas);var n=0;izin.forEach(function(i){if(i.kelas===kelas&&i.waliKelas!==baru){i.waliKelas=baru;n++}});if(n)DB.set('gh_izin',izin);return n}
+function renderWaliTable(){var t=$('waliTable');if(!t)return;if(!daftarKelas.length){t.innerHTML='<tr><td colspan="5" class="empty">Belum ada kelas</td></tr>';return}var cb={};santri.forEach(function(s){cb[s.kelas]=(cb[s.kelas]||0)+1});var h='';daftarKelas.forEach(function(k,i){h+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(k)+'</td><td>'+((cb[k]||0)+' santri')+'</td><td><input type="text" class="wali-input" data-kelas="'+escapeAttr(k)+'" value="'+escapeAttr(getWaliKelas(k))+'" placeholder="Nama wali kelas..."'+(isAdmin()?'':' disabled')+'></td><td>'+(isAdmin()?'<button type="button" class="btn btn-sm btn-primary" onclick="simpanWaliKelas(this)" title="Simpan"><i class="fa-solid fa-floppy-disk"></i></button>':'<span class="badge-viewonly"><i class="fa-solid fa-eye"></i> Lihat</span>')+'</td></tr>'});t.innerHTML=h}
+function simpanWaliKelas(btn){if(!isAdmin()){showToast('Akses ditolak','error');return}var tr=btn.closest('tr');var inp=tr?tr.querySelector('.wali-input'):null;if(!inp)return;var k=inp.getAttribute('data-kelas');waliKelas[k]=inp.value.trim();DB.set('gh_wali_kelas',waliKelas);logAktivitas('Ubah Wali Kelas',k+' - '+(inp.value.trim()||'-'));var nr=refreshWaliIzin(k);showToast('Wali kelas '+k+' disimpan'+(nr?' ('+nr+' data izin ikut diperbarui)':''));renderAll();syncWaliKelasField()}
+function simpanSemuaWali(){if(!isAdmin()){showToast('Akses ditolak','error');return}var n=0;document.querySelectorAll('#waliTable .wali-input').forEach(function(inp){var k=inp.getAttribute('data-kelas');var v=inp.value.trim();if((waliKelas[k]||'')!==v){waliKelas[k]=v;n++}});DB.set('gh_wali_kelas',waliKelas);logAktivitas('Ubah Wali Kelas',n+' kelas diperbarui');var nr=0;Object.keys(waliKelas).forEach(function(k){nr+=refreshWaliIzin(k)});showToast(n+' wali kelas disimpan'+(nr?' ('+nr+' data izin ikut diperbarui)':''));renderAll();syncWaliKelasField()}
+function editSantri(id){if(!isAdmin()){showToast('Akses ditolak','error');return}var s=santri.find(function(x){return x.id===id});if(!s){showToast('Santri tidak ditemukan','error');return}var esId=$('esId'),esNama=$('esNama'),esKelas=$('esKelas'),esKontak=$('esKontak'),esInfo=$('esInfo');if(!esId||!esNama||!esKelas)return;esId.value=s.id;esNama.value=s.nama;esKontak.value=s.kontak||'';esInfo.textContent=s.nama+' — '+s.kelas;var h='';if(daftarKelas.indexOf(s.kelas)===-1)h+='<option value="'+escapeAttr(s.kelas)+'" selected>'+escapeHtml(s.kelas)+'</option>';daftarKelas.forEach(function(k){h+='<option value="'+escapeAttr(k)+'"'+(k===s.kelas?' selected':'')+'>'+escapeHtml(k)+'</option>'});esKelas.innerHTML=h;openModal('modalEditSantri')}
+function saveEditSantri(e){e.preventDefault();if(!isAdmin()){showToast('Akses ditolak','error');return}var id=parseInt($('esId').value);var s=santri.find(function(x){return x.id===id});if(!s){showToast('Santri tidak ditemukan','error');return}var nama=$('esNama').value.trim();var kelas=$('esKelas').value;var kontak=$('esKontak').value.trim();if(!nama){showToast('Nama wajib diisi','error');return}if(!kelas){showToast('Kelas wajib dipilih','error');return}if(santri.some(function(x){return x.id!==id&&x.nama.toLowerCase()===nama.toLowerCase()&&x.kelas===kelas})){showToast('Santri dengan nama & kelas tersebut sudah ada','error');return}var lama=s.nama+' ('+s.kelas+')';var kelasLama=s.kelas;s.nama=nama;s.kelas=kelas;s.kontak=kontak;DB.set('gh_santri',santri);izin.forEach(function(i){if(i.santriId===id){i.nama=nama;i.kelas=kelas;if(kelasLama!==kelas)i.waliKelas=getWaliKelas(kelas)}});DB.set('gh_izin',izin);pelanggaran.forEach(function(p){if(p.santriId===id){p.nama=nama;p.kelas=kelas}});DB.set('gh_pelanggaran',pelanggaran);beku.forEach(function(b){if(b.santriId===id){b.nama=nama;b.kelas=kelas}});DB.set('gh_beku',beku);if(daftarKelas.indexOf(kelas)===-1){daftarKelas.push(kelas);DB.set('gh_kelas',daftarKelas)}logAktivitas('Edit Santri',lama+' → '+nama+' ('+kelas+')'+(kelasLama!==kelas?' [pindah kelas]':''));closeModal('modalEditSantri');showToast('Data santri diperbarui');renderAll()}
+
 var DB={get:function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v||d}catch(e){return d}},set:function(k,v){localStorage.setItem(k,JSON.stringify(v))}};
 
-var santri=DB.get('gh_santri',(window.SEED_SANTRI||[]).slice());
+var KELAS_SEED=["1 SPM", "1A Wustha", "1B Wustha", "1C Wustha", "1D Wustha", "1E Wustha", "2A Wustha", "2B Wustha", "2C Wustha", "2D Wustha", "3A Wustha", "3B Wustha", "3C Wustha", "3D Wustha", "3E Wustha", "1A MAPK", "1B MAPK", "2 MAPK", "3 MAPK", "1 PDF Ulya", "2 PDF Ulya", "3 PDF Ulya"];
+var SANTRI_SEED=[
+{"id":1001,"nama":"A. Putra Rangga Sari","kelas":"1 SPM","kontak":""},
+{"id":1002,"nama":"Abydzar Dahlan","kelas":"1 SPM","kontak":""},
+{"id":1003,"nama":"Albie Al Faraby Sahal","kelas":"1 SPM","kontak":""},
+{"id":1004,"nama":"Alzam Ali","kelas":"1 SPM","kontak":""},
+{"id":1005,"nama":"Arsyad Akbar","kelas":"1 SPM","kontak":""},
+{"id":1006,"nama":"Fauzi Nafi","kelas":"1 SPM","kontak":""},
+{"id":1007,"nama":"Fawwaz Gazy Gaffar","kelas":"1 SPM","kontak":""},
+{"id":1008,"nama":"Gibran Brilliant Syakur","kelas":"1 SPM","kontak":""},
+{"id":1009,"nama":"Hibrizi El Sharawy","kelas":"1 SPM","kontak":""},
+{"id":1010,"nama":"M. Abid Aqilah Ali","kelas":"1 SPM","kontak":"81245996370"},
+{"id":1011,"nama":"M. Ibnu Asraf","kelas":"1 SPM","kontak":"0823353355502"},
+{"id":1012,"nama":"M. Zainal Azzam","kelas":"1 SPM","kontak":""},
+{"id":1013,"nama":"Muh. Abid Arafat","kelas":"1 SPM","kontak":""},
+{"id":1014,"nama":"Muh. Al Faqih Syam","kelas":"1 SPM","kontak":""},
+{"id":1015,"nama":"Muh. Albaqi Billah","kelas":"1 SPM","kontak":""},
+{"id":1016,"nama":"Muhammad Abidzar","kelas":"1 SPM","kontak":""},
+{"id":1017,"nama":"Muhammad Abidzar Haris","kelas":"1 SPM","kontak":""},
+{"id":1018,"nama":"Muhammad Abizar","kelas":"1 SPM","kontak":""},
+{"id":1019,"nama":"Muhammad Abuzar","kelas":"1 SPM","kontak":""},
+{"id":1020,"nama":"Muhammad Farid M","kelas":"1 SPM","kontak":""},
+{"id":1021,"nama":"Muhammad Fauzi","kelas":"1 SPM","kontak":""},
+{"id":1022,"nama":"Muhammad Hisyam","kelas":"1 SPM","kontak":""},
+{"id":1023,"nama":"Prabu Prananda Putra N","kelas":"1 SPM","kontak":""},
+{"id":1024,"nama":"Rais Nuril Arham. M","kelas":"1 SPM","kontak":""},
+{"id":1025,"nama":"Shaad Ahmad Hanafih","kelas":"1 SPM","kontak":""},
+{"id":1026,"nama":"M.Wahyu","kelas":"1 SPM","kontak":""},
+{"id":1027,"nama":"Zhafran Khairy Akbar","kelas":"1 SPM","kontak":""},
+{"id":1028,"nama":"Arsyad Pananrang","kelas":"1A Wustha","kontak":""},
+{"id":1029,"nama":"Ahmad Hafiz","kelas":"1A Wustha","kontak":"082196031566"},
+{"id":1030,"nama":"Ahmad Ahsan Ali","kelas":"1A Wustha","kontak":"082372650567"},
+{"id":1031,"nama":"Ahmad Fathin Zahy","kelas":"1A Wustha","kontak":""},
+{"id":1032,"nama":"Ahmad Said","kelas":"1A Wustha","kontak":"82348468896"},
+{"id":1033,"nama":"Ananda Fairuz Indhillah. Sy","kelas":"1A Wustha","kontak":"85341665959"},
+{"id":1034,"nama":"Andrea Hirata","kelas":"1A Wustha","kontak":""},
+{"id":1035,"nama":"Fitrah Azka Ramadhan","kelas":"1A Wustha","kontak":""},
+{"id":1036,"nama":"Ilafy Al Qadry","kelas":"1A Wustha","kontak":""},
+{"id":1037,"nama":"Ilaikal","kelas":"1A Wustha","kontak":""},
+{"id":1038,"nama":"Khairul Umma","kelas":"1A Wustha","kontak":""},
+{"id":1039,"nama":"M. Rezky Dirham","kelas":"1A Wustha","kontak":""},
+{"id":1040,"nama":"Maher Elmuaqily","kelas":"1A Wustha","kontak":""},
+{"id":1041,"nama":"Marwan","kelas":"1A Wustha","kontak":"085245772858"},
+{"id":1042,"nama":"Muh. Albar Hasbi","kelas":"1A Wustha","kontak":""},
+{"id":1043,"nama":"Muh. Alif","kelas":"1A Wustha","kontak":""},
+{"id":1044,"nama":"Muh. Aqza Abizard","kelas":"1A Wustha","kontak":""},
+{"id":1045,"nama":"Muh. Mirza Syam","kelas":"1A Wustha","kontak":""},
+{"id":1046,"nama":"Muh. Ragil","kelas":"1A Wustha","kontak":"81527309118"},
+{"id":1047,"nama":"Muh. Ramli","kelas":"1A Wustha","kontak":""},
+{"id":1048,"nama":"Muhammad Abdul Jabbar","kelas":"1A Wustha","kontak":""},
+{"id":1049,"nama":"Muhammad Aco Alif Pratama. AS","kelas":"1A Wustha","kontak":""},
+{"id":1050,"nama":"Muhammad Akil Rifai","kelas":"1A Wustha","kontak":"81354103339"},
+{"id":1051,"nama":"Muhammad Fayyadh Maulana","kelas":"1A Wustha","kontak":""},
+{"id":1052,"nama":"Muhammad Yusuf Rum","kelas":"1A Wustha","kontak":"085395974122"},
+{"id":1053,"nama":"Muhammad Zulfahmi","kelas":"1A Wustha","kontak":""},
+{"id":1054,"nama":"Qalbi Al-Jihad","kelas":"1A Wustha","kontak":""},
+{"id":1055,"nama":"Abd. Wahab","kelas":"1B Wustha","kontak":""},
+{"id":1056,"nama":"Abdil Risqi Ash Shafat","kelas":"1B Wustha","kontak":"081914499328"},
+{"id":1057,"nama":"Afdillah ilyas","kelas":"1B Wustha","kontak":""},
+{"id":1058,"nama":"Alif Al Gazali","kelas":"1B Wustha","kontak":""},
+{"id":1059,"nama":"Andi Pata Hillah","kelas":"1B Wustha","kontak":"08347561157"},
+{"id":1060,"nama":"Bilal Altaf Zihni. S","kelas":"1B Wustha","kontak":"85294931518"},
+{"id":1061,"nama":"Dannuaji S","kelas":"1B Wustha","kontak":""},
+{"id":1062,"nama":"Faqih Shafran Alfatih","kelas":"1B Wustha","kontak":""},
+{"id":1063,"nama":"Fiqri Rasiq Elsaid","kelas":"1B Wustha","kontak":"085242265177"},
+{"id":1064,"nama":"Izan Al Mustafa","kelas":"1B Wustha","kontak":"088801098789"},
+{"id":1065,"nama":"Jumran","kelas":"1B Wustha","kontak":""},
+{"id":1066,"nama":"Malik Pahad","kelas":"1B Wustha","kontak":""},
+{"id":1067,"nama":"Muh Fikri Ramadhan","kelas":"1B Wustha","kontak":""},
+{"id":1068,"nama":"Muh Naufal Afkar","kelas":"1B Wustha","kontak":"085241888280"},
+{"id":1069,"nama":"Muh. Abidzar Al Ghifari","kelas":"1B Wustha","kontak":""},
+{"id":1070,"nama":"Muh. Akhsan Nasrud","kelas":"1B Wustha","kontak":""},
+{"id":1071,"nama":"Muh. Hanif Akbar","kelas":"1B Wustha","kontak":""},
+{"id":1072,"nama":"Muh. Khusnul Mubaraq","kelas":"1B Wustha","kontak":""},
+{"id":1073,"nama":"Muh. Riswan","kelas":"1B Wustha","kontak":"082343353271"},
+{"id":1074,"nama":"Muhammad Afri","kelas":"1B Wustha","kontak":""},
+{"id":1075,"nama":"Muhammad Aidil Safwan","kelas":"1B Wustha","kontak":""},
+{"id":1076,"nama":"Muhammad Awaluddin R.","kelas":"1B Wustha","kontak":""},
+{"id":1077,"nama":"Muhammad Bisyri","kelas":"1B Wustha","kontak":""},
+{"id":1078,"nama":"Muhammad Rasya Firansyah","kelas":"1B Wustha","kontak":""},
+{"id":1079,"nama":"Abd. Amaar","kelas":"1C Wustha","kontak":"085246918013"},
+{"id":1080,"nama":"Abizar Hidayat","kelas":"1C Wustha","kontak":""},
+{"id":1081,"nama":"Aditya Rifqi Hamizan","kelas":"1C Wustha","kontak":"0811422874"},
+{"id":1082,"nama":"Ahmad Alam Zaki","kelas":"1C Wustha","kontak":""},
+{"id":1083,"nama":"Aidil Ahmad","kelas":"1C Wustha","kontak":""},
+{"id":1084,"nama":"Al-Kahfi Umar","kelas":"1C Wustha","kontak":""},
+{"id":1085,"nama":"Almubarak","kelas":"1C Wustha","kontak":""},
+{"id":1086,"nama":"Aqil Safwan","kelas":"1C Wustha","kontak":""},
+{"id":1087,"nama":"Dzul Abrar","kelas":"1C Wustha","kontak":""},
+{"id":1088,"nama":"Fadhil Muhammad Dzaky","kelas":"1C Wustha","kontak":""},
+{"id":1089,"nama":"Fadhlan Al Gifari R. Lidda","kelas":"1C Wustha","kontak":""},
+{"id":1090,"nama":"Fayyadh Rifqi Muhammad","kelas":"1C Wustha","kontak":"081245171284"},
+{"id":1091,"nama":"Furqan","kelas":"1C Wustha","kontak":""},
+{"id":1092,"nama":"Gian Ardani","kelas":"1C Wustha","kontak":""},
+{"id":1093,"nama":"Muh Fachri Fayyadh Fadhlurrohman","kelas":"1C Wustha","kontak":""},
+{"id":1094,"nama":"Muh Hisyam Ilham","kelas":"1C Wustha","kontak":""},
+{"id":1095,"nama":"Muh. Arrahman","kelas":"1C Wustha","kontak":""},
+{"id":1096,"nama":"Muh. Fajar G. Lantu","kelas":"1C Wustha","kontak":""},
+{"id":1097,"nama":"Muh. Lutfi Kaimuddin","kelas":"1C Wustha","kontak":"85330782249"},
+{"id":1098,"nama":"Muh. Rafi Al-Gazali","kelas":"1C Wustha","kontak":""},
+{"id":1099,"nama":"Muh. Risal","kelas":"1C Wustha","kontak":""},
+{"id":1100,"nama":"Muhammad Asyirun","kelas":"1C Wustha","kontak":""},
+{"id":1101,"nama":"Muhammad Iqbal","kelas":"1C Wustha","kontak":""},
+{"id":1102,"nama":"Nabil","kelas":"1C Wustha","kontak":""},
+{"id":1103,"nama":"Rifa Al-Furqan","kelas":"1C Wustha","kontak":""},
+{"id":1104,"nama":"Zulfahmi Addin Siraj","kelas":"1C Wustha","kontak":""},
+{"id":1105,"nama":"Akhdan Affiq Azizan","kelas":"1C Wustha","kontak":"081343908113"},
+{"id":1106,"nama":"Afiq Irsyad","kelas":"1D Wustha","kontak":""},
+{"id":1107,"nama":"Akmal Alauddin","kelas":"1D Wustha","kontak":""},
+{"id":1108,"nama":"Andi Muhammad Alwafi","kelas":"1D Wustha","kontak":""},
+{"id":1109,"nama":"Chelsea Slovani. M","kelas":"1D Wustha","kontak":""},
+{"id":1110,"nama":"Dafa Fazil Nugrah","kelas":"1D Wustha","kontak":"0985256235660"},
+{"id":1111,"nama":"Haikal","kelas":"1D Wustha","kontak":"85255753359"},
+{"id":1112,"nama":"Khairul Azzam. S","kelas":"1D Wustha","kontak":"85247027009"},
+{"id":1113,"nama":"M. Farid Nawir","kelas":"1D Wustha","kontak":"082396823610"},
+{"id":1114,"nama":"Muammar Hafiz","kelas":"1D Wustha","kontak":"82187423400"},
+{"id":1115,"nama":"Muh Farhan","kelas":"1D Wustha","kontak":"85214856172"},
+{"id":1116,"nama":"Muh Rafa","kelas":"1D Wustha","kontak":"85238693173"},
+{"id":1117,"nama":"Muh. Anis Zakwan","kelas":"1D Wustha","kontak":""},
+{"id":1118,"nama":"Muh. Hafis Al-Hasbi","kelas":"1D Wustha","kontak":""},
+{"id":1119,"nama":"Muh. Naufal Anugrah","kelas":"1D Wustha","kontak":""},
+{"id":1120,"nama":"Muh. Rafa","kelas":"1D Wustha","kontak":""},
+{"id":1121,"nama":"Muh. Rafi","kelas":"1D Wustha","kontak":"85238693173"},
+{"id":1122,"nama":"Muh. Zakir","kelas":"1D Wustha","kontak":""},
+{"id":1123,"nama":"Muhammad Akil","kelas":"1D Wustha","kontak":""},
+{"id":1124,"nama":"Muhammad Ilham","kelas":"1D Wustha","kontak":""},
+{"id":1125,"nama":"Muhammad Rayyandra Maulana","kelas":"1D Wustha","kontak":""},
+{"id":1126,"nama":"Muhammad Riusul","kelas":"1D Wustha","kontak":""},
+{"id":1127,"nama":"Rahmat Aidhil Akbar","kelas":"1D Wustha","kontak":"81914499328"},
+{"id":1128,"nama":"Rehan Dzakwan Abidzal","kelas":"1D Wustha","kontak":""},
+{"id":1129,"nama":"Riswand. Re","kelas":"1D Wustha","kontak":""},
+{"id":1130,"nama":"Zulkifli","kelas":"1D Wustha","kontak":""},
+{"id":1131,"nama":"Ade Abraham Irianto","kelas":"1E Wustha","kontak":""},
+{"id":1132,"nama":"Aditya Kasman","kelas":"1E Wustha","kontak":"081230334311"},
+{"id":1133,"nama":"Akhtar Dzaky","kelas":"1E Wustha","kontak":""},
+{"id":1134,"nama":"Al Ihklas","kelas":"1E Wustha","kontak":""},
+{"id":1135,"nama":"Aswandi","kelas":"1E Wustha","kontak":"82245958796"},
+{"id":1136,"nama":"Dirga Aldiansyah Putra","kelas":"1E Wustha","kontak":""},
+{"id":1137,"nama":"M. Fatur","kelas":"1E Wustha","kontak":""},
+{"id":1138,"nama":"Muh Afzal Barqi","kelas":"1E Wustha","kontak":"89691515383"},
+{"id":1139,"nama":"Muh. Ariandi","kelas":"1E Wustha","kontak":"089527284064"},
+{"id":1140,"nama":"Muh. Fadli","kelas":"1E Wustha","kontak":"082284019693"},
+{"id":1141,"nama":"Muh. Fahrul","kelas":"1E Wustha","kontak":""},
+{"id":1142,"nama":"Muh. Nabil","kelas":"1E Wustha","kontak":""},
+{"id":1143,"nama":"Muh. Zikri Hady","kelas":"1E Wustha","kontak":""},
+{"id":1144,"nama":"Muhammad Adnan Dzuljalali","kelas":"1E Wustha","kontak":""},
+{"id":1145,"nama":"Muhammad Aqil Hanif","kelas":"1E Wustha","kontak":""},
+{"id":1146,"nama":"Muhammad Aslan","kelas":"1E Wustha","kontak":""},
+{"id":1147,"nama":"Muhammad Asraf","kelas":"1E Wustha","kontak":"82153727080"},
+{"id":1148,"nama":"Muhammad Bakhtiar Hidayat","kelas":"1E Wustha","kontak":""},
+{"id":1149,"nama":"Muhammad Danil Safwan","kelas":"1E Wustha","kontak":""},
+{"id":1150,"nama":"Muhammad Ferdiansyah Edy","kelas":"1E Wustha","kontak":""},
+{"id":1151,"nama":"Muhammad Nuzul","kelas":"1E Wustha","kontak":""},
+{"id":1152,"nama":"Rafly Amar Jawad","kelas":"1E Wustha","kontak":""},
+{"id":1153,"nama":"Rifqie Nadim Ukail","kelas":"1E Wustha","kontak":""},
+{"id":1154,"nama":"Rizqi Pratama","kelas":"1E Wustha","kontak":""},
+{"id":1155,"nama":"Sukarno Putra","kelas":"1E Wustha","kontak":""},
+{"id":1156,"nama":"Muh Hariadi","kelas":"1E Wustha","kontak":""},
+{"id":1157,"nama":"Muh Zulkifli","kelas":"1E Wustha","kontak":""},
+{"id":1158,"nama":"Abid Zar Ilham","kelas":"2A Wustha","kontak":""},
+{"id":1159,"nama":"Afsal Murtazah","kelas":"2A Wustha","kontak":""},
+{"id":1160,"nama":"Ahmad Arif","kelas":"2A Wustha","kontak":""},
+{"id":1161,"nama":"Ahmad Rafiq","kelas":"2A Wustha","kontak":""},
+{"id":1162,"nama":"Ahmad Syafii Syam","kelas":"2A Wustha","kontak":"081343599960"},
+{"id":1163,"nama":"Arman","kelas":"2A Wustha","kontak":""},
+{"id":1164,"nama":"Athir Athaillah","kelas":"2A Wustha","kontak":""},
+{"id":1165,"nama":"Farhan Azhar Ramadhan","kelas":"2A Wustha","kontak":""},
+{"id":1166,"nama":"Fuad Lailatul Luthfi","kelas":"2A Wustha","kontak":""},
+{"id":1167,"nama":"Iklil Nabhan Mungaran. T","kelas":"2A Wustha","kontak":""},
+{"id":1168,"nama":"Is`adul Rifqi","kelas":"2A Wustha","kontak":""},
+{"id":1169,"nama":"M. Rizqi Dzakkir Akram","kelas":"2A Wustha","kontak":"086270405793"},
+{"id":1170,"nama":"M. Taslim","kelas":"2A Wustha","kontak":""},
+{"id":1171,"nama":"M.Cakra Saputra","kelas":"2A Wustha","kontak":""},
+{"id":1172,"nama":"Muh. Aidil Adha","kelas":"2A Wustha","kontak":"82345601734"},
+{"id":1173,"nama":"Muh. Gibran Al Ghifar. A","kelas":"2A Wustha","kontak":""},
+{"id":1174,"nama":"Muh. Istiqlal","kelas":"2A Wustha","kontak":""},
+{"id":1175,"nama":"Muh. Jumadil Awal","kelas":"2A Wustha","kontak":""},
+{"id":1176,"nama":"Muh. Nasrullah","kelas":"2A Wustha","kontak":""},
+{"id":1177,"nama":"Muh. Said","kelas":"2A Wustha","kontak":""},
+{"id":1178,"nama":"Muh. Sya'ban Ali Ramadhan","kelas":"2A Wustha","kontak":"0822134679"},
+{"id":1179,"nama":"Muh. Syam","kelas":"2A Wustha","kontak":""},
+{"id":1180,"nama":"Muhammad Aswad","kelas":"2A Wustha","kontak":""},
+{"id":1181,"nama":"Muhammad Azka Naufal Ar Rahman","kelas":"2A Wustha","kontak":"081322219071"},
+{"id":1182,"nama":"Muhammad Iqbal","kelas":"2A Wustha","kontak":""},
+{"id":1183,"nama":"Muhammad Zubair","kelas":"2A Wustha","kontak":""},
+{"id":1184,"nama":"Tio Afrisal","kelas":"2A Wustha","kontak":"085757621647"},
+{"id":1185,"nama":"Abdul Musawwir","kelas":"2B Wustha","kontak":""},
+{"id":1186,"nama":"Abdullah Faqhi","kelas":"2B Wustha","kontak":""},
+{"id":1187,"nama":"Ahmad Hilmy Al Fikry","kelas":"2B Wustha","kontak":""},
+{"id":1188,"nama":"Angga Ahsanul Khalikin","kelas":"2B Wustha","kontak":""},
+{"id":1189,"nama":"Aydin Wahyudi. B","kelas":"2B Wustha","kontak":""},
+{"id":1190,"nama":"Dede Saputra","kelas":"2B Wustha","kontak":""},
+{"id":1191,"nama":"Dedy Saputra","kelas":"2B Wustha","kontak":""},
+{"id":1192,"nama":"Faad Mubaraq","kelas":"2B Wustha","kontak":""},
+{"id":1193,"nama":"Ihsan Ali Fauzi","kelas":"2B Wustha","kontak":"085343800800"},
+{"id":1194,"nama":"Irhamul Hidayah","kelas":"2B Wustha","kontak":""},
+{"id":1195,"nama":"M. Syahran","kelas":"2B Wustha","kontak":""},
+{"id":1196,"nama":"Muh. Algi Fari","kelas":"2B Wustha","kontak":""},
+{"id":1197,"nama":"Muh. Alif Jibrin","kelas":"2B Wustha","kontak":""},
+{"id":1198,"nama":"Muh. Aqil Almunawwir H","kelas":"2B Wustha","kontak":""},
+{"id":1199,"nama":"Muh. Aqil Mutawalli","kelas":"2B Wustha","kontak":"085242704382"},
+{"id":1200,"nama":"Muh. Fadlur Rahman","kelas":"2B Wustha","kontak":""},
+{"id":1201,"nama":"Muh. Idham Ibnu Ibrahim","kelas":"2B Wustha","kontak":""},
+{"id":1202,"nama":"Muh. Manna Hasbih","kelas":"2B Wustha","kontak":""},
+{"id":1203,"nama":"Muh. Syaputra","kelas":"2B Wustha","kontak":""},
+{"id":1204,"nama":"Muhammad Akmal","kelas":"2B Wustha","kontak":""},
+{"id":1205,"nama":"Muhammad Alif Daffa","kelas":"2B Wustha","kontak":""},
+{"id":1206,"nama":"Muhammad Farid","kelas":"2B Wustha","kontak":""},
+{"id":1207,"nama":"Muhammad Fathir Al Faruq","kelas":"2B Wustha","kontak":""},
+{"id":1208,"nama":"Muhammad Fauzan","kelas":"2B Wustha","kontak":""},
+{"id":1209,"nama":"Muhammad Sabri","kelas":"2B Wustha","kontak":""},
+{"id":1210,"nama":"Muhammad Yusuf","kelas":"2B Wustha","kontak":""},
+{"id":1211,"nama":"Putra","kelas":"2B Wustha","kontak":""},
+{"id":1212,"nama":"Syafiq Tabarak","kelas":"2B Wustha","kontak":"082287667613"},
+{"id":1213,"nama":"Yusuf Ibrah","kelas":"2B Wustha","kontak":""},
+{"id":1214,"nama":"Afrizal Suparman","kelas":"2C Wustha","kontak":""},
+{"id":1215,"nama":"Ahmad Abid Asim","kelas":"2C Wustha","kontak":""},
+{"id":1216,"nama":"Ahmad Fiqri","kelas":"2C Wustha","kontak":"085242713715"},
+{"id":1217,"nama":"Ambasador Sac. GF","kelas":"2C Wustha","kontak":""},
+{"id":1218,"nama":"Asril","kelas":"2C Wustha","kontak":""},
+{"id":1219,"nama":"Aswan Syam","kelas":"2C Wustha","kontak":""},
+{"id":1220,"nama":"Baihaqi Zam Nur","kelas":"2C Wustha","kontak":"08219076966"},
+{"id":1221,"nama":"Ervin muhammad David","kelas":"2C Wustha","kontak":""},
+{"id":1222,"nama":"Fadhil Zaki","kelas":"2C Wustha","kontak":""},
+{"id":1223,"nama":"Irsyadul Habibi","kelas":"2C Wustha","kontak":""},
+{"id":1224,"nama":"M. Haerul","kelas":"2C Wustha","kontak":""},
+{"id":1225,"nama":"Muh. Anugrah Maulana","kelas":"2C Wustha","kontak":""},
+{"id":1226,"nama":"Muh. Fahri","kelas":"2C Wustha","kontak":""},
+{"id":1227,"nama":"Muh. Faiz","kelas":"2C Wustha","kontak":""},
+{"id":1228,"nama":"Muh. Faiz Azzikra","kelas":"2C Wustha","kontak":""},
+{"id":1229,"nama":"Muh. Fajar","kelas":"2C Wustha","kontak":""},
+{"id":1230,"nama":"Muhammad Alim Maarif","kelas":"2C Wustha","kontak":""},
+{"id":1231,"nama":"Muhammad Arif","kelas":"2C Wustha","kontak":""},
+{"id":1232,"nama":"Muhammad Askari","kelas":"2C Wustha","kontak":""},
+{"id":1233,"nama":"Muhammad Aufar","kelas":"2C Wustha","kontak":"85298535968"},
+{"id":1234,"nama":"Muhammad Fahri","kelas":"2C Wustha","kontak":""},
+{"id":1235,"nama":"Muhammad Ifan Dimas","kelas":"2C Wustha","kontak":""},
+{"id":1236,"nama":"Muhammad Nizyam","kelas":"2C Wustha","kontak":""},
+{"id":1237,"nama":"Muhammad Nur Irfan","kelas":"2C Wustha","kontak":""},
+{"id":1238,"nama":"Muhammad Ramadhan","kelas":"2C Wustha","kontak":"087786739225"},
+{"id":1239,"nama":"Muhammad Syarif","kelas":"2C Wustha","kontak":""},
+{"id":1240,"nama":"Raden Muh Daud. S","kelas":"2C Wustha","kontak":""},
+{"id":1241,"nama":"Ramansyah","kelas":"2C Wustha","kontak":""},
+{"id":1242,"nama":"Rasak","kelas":"2C Wustha","kontak":""},
+{"id":1243,"nama":"Ulma Dwifatonah","kelas":"2C Wustha","kontak":""},
+{"id":1244,"nama":"Ahmad Farhan","kelas":"2C Wustha","kontak":"085214056172"},
+{"id":1245,"nama":"Uwais","kelas":"2C Wustha","kontak":""},
+{"id":1246,"nama":"Ahmad Faiz Malik Ibrahim","kelas":"2D Wustha","kontak":"82292714642"},
+{"id":1247,"nama":"Ahmad Khair","kelas":"2D Wustha","kontak":""},
+{"id":1248,"nama":"Fajar Ramadhan","kelas":"2D Wustha","kontak":""},
+{"id":1249,"nama":"Fathur Rahman","kelas":"2D Wustha","kontak":""},
+{"id":1250,"nama":"Fikri","kelas":"2D Wustha","kontak":""},
+{"id":1251,"nama":"M. Shiddiq Aufa","kelas":"2D Wustha","kontak":""},
+{"id":1252,"nama":"M.Ikrom","kelas":"2D Wustha","kontak":""},
+{"id":1253,"nama":"Muh Al Imran","kelas":"2D Wustha","kontak":"85231430520"},
+{"id":1254,"nama":"Muh. Adrisal","kelas":"2D Wustha","kontak":""},
+{"id":1255,"nama":"Muh. Aidil Iqram","kelas":"2D Wustha","kontak":""},
+{"id":1256,"nama":"Muh. Al Farabi","kelas":"2D Wustha","kontak":""},
+{"id":1257,"nama":"Muh. Erwan","kelas":"2D Wustha","kontak":""},
+{"id":1258,"nama":"Muh. Fatur Rahman","kelas":"2D Wustha","kontak":""},
+{"id":1259,"nama":"Muh. Fiqram","kelas":"2D Wustha","kontak":""},
+{"id":1260,"nama":"Muh. Irsandi","kelas":"2D Wustha","kontak":""},
+{"id":1261,"nama":"Muh. Ishaq Maulana","kelas":"2D Wustha","kontak":""},
+{"id":1262,"nama":"Muh. Iswar","kelas":"2D Wustha","kontak":"085356412711"},
+{"id":1263,"nama":"Muh. Rahman","kelas":"2D Wustha","kontak":""},
+{"id":1264,"nama":"Muh. Ridwan","kelas":"2D Wustha","kontak":"0831137997317"},
+{"id":1265,"nama":"Muhammad Aidil Ilham","kelas":"2D Wustha","kontak":""},
+{"id":1266,"nama":"Muhammad Alif sahabuddin","kelas":"2D Wustha","kontak":""},
+{"id":1267,"nama":"Muhammad Aril","kelas":"2D Wustha","kontak":""},
+{"id":1268,"nama":"Muhammad Aslan","kelas":"2D Wustha","kontak":""},
+{"id":1269,"nama":"Muhammad Asyraf","kelas":"2D Wustha","kontak":""},
+{"id":1270,"nama":"Muhammad Difar","kelas":"2D Wustha","kontak":""},
+{"id":1271,"nama":"Muhammad Fadhil","kelas":"2D Wustha","kontak":""},
+{"id":1272,"nama":"Muhammad Fahri","kelas":"2D Wustha","kontak":""},
+{"id":1273,"nama":"Muhammmad Asram Saputra","kelas":"2D Wustha","kontak":""},
+{"id":1274,"nama":"Sulaiman","kelas":"2D Wustha","kontak":""},
+{"id":1275,"nama":"Syahreza Ramadhan","kelas":"2D Wustha","kontak":""},
+{"id":1276,"nama":"Wahab Fatta","kelas":"2D Wustha","kontak":""},
+{"id":1277,"nama":"A. Muhammad Yusuf","kelas":"3A Wustha","kontak":""},
+{"id":1278,"nama":"Abdul Rahman","kelas":"3A Wustha","kontak":""},
+{"id":1279,"nama":"Adnan Fauzan","kelas":"3A Wustha","kontak":""},
+{"id":1280,"nama":"Ahmad Assegaf","kelas":"3A Wustha","kontak":""},
+{"id":1281,"nama":"Aidil Fauzan","kelas":"3A Wustha","kontak":"85399236374"},
+{"id":1282,"nama":"Andi Baso Al Fath","kelas":"3A Wustha","kontak":""},
+{"id":1283,"nama":"Arkan Hasyim","kelas":"3A Wustha","kontak":""},
+{"id":1284,"nama":"Faris Ibrahim Anugrah","kelas":"3A Wustha","kontak":""},
+{"id":1285,"nama":"M. Daiyan Faheem","kelas":"3A Wustha","kontak":""},
+{"id":1286,"nama":"M. Faqih","kelas":"3A Wustha","kontak":""},
+{"id":1287,"nama":"M. Sayyid Ibnu Syam","kelas":"3A Wustha","kontak":""},
+{"id":1288,"nama":"Muh. Alfat Dzakwan","kelas":"3A Wustha","kontak":""},
+{"id":1289,"nama":"Muh. Arif","kelas":"3A Wustha","kontak":""},
+{"id":1290,"nama":"Muh. Ifta Hillah","kelas":"3A Wustha","kontak":""},
+{"id":1291,"nama":"Muh. Rifai","kelas":"3A Wustha","kontak":""},
+{"id":1292,"nama":"Muhammad Dzaki Ilham","kelas":"3A Wustha","kontak":""},
+{"id":1293,"nama":"Muhammad Fadil","kelas":"3A Wustha","kontak":""},
+{"id":1294,"nama":"Muhammad Hasby Alwi","kelas":"3A Wustha","kontak":""},
+{"id":1295,"nama":"Muhammad Naufal.S","kelas":"3A Wustha","kontak":"81248945605"},
+{"id":1296,"nama":"Muhammad Syahir","kelas":"3A Wustha","kontak":""},
+{"id":1297,"nama":"Rafa Rizqullah","kelas":"3A Wustha","kontak":""},
+{"id":1298,"nama":"Ridwan Rasjid Baso","kelas":"3A Wustha","kontak":""},
+{"id":1299,"nama":"Surya","kelas":"3A Wustha","kontak":""},
+{"id":1300,"nama":"Syafiq Fauda","kelas":"3A Wustha","kontak":"085397992038"},
+{"id":1301,"nama":"Ahmad Alwi Arisandi","kelas":"3B Wustha","kontak":""},
+{"id":1302,"nama":"Ahmad Khalid Hidayatullah","kelas":"3B Wustha","kontak":""},
+{"id":1303,"nama":"Ainurrahman","kelas":"3B Wustha","kontak":""},
+{"id":1304,"nama":"Aksal Awi Pratama","kelas":"3B Wustha","kontak":"085386586661"},
+{"id":1305,"nama":"Alwiansyah","kelas":"3B Wustha","kontak":""},
+{"id":1306,"nama":"Arya Rajata","kelas":"3B Wustha","kontak":""},
+{"id":1307,"nama":"Baharuddin .B","kelas":"3B Wustha","kontak":""},
+{"id":1308,"nama":"Hisyam Hidayat Ardi","kelas":"3B Wustha","kontak":""},
+{"id":1309,"nama":"Khairul Anwar","kelas":"3B Wustha","kontak":""},
+{"id":1310,"nama":"Muh Muqsith Munir","kelas":"3B Wustha","kontak":""},
+{"id":1311,"nama":"Muh. Abil Arqam","kelas":"3B Wustha","kontak":""},
+{"id":1312,"nama":"Muh. Aswad","kelas":"3B Wustha","kontak":""},
+{"id":1313,"nama":"Muh. Fuad Nayasin","kelas":"3B Wustha","kontak":"085295373272"},
+{"id":1314,"nama":"Gufron","kelas":"3B Wustha","kontak":""},
+{"id":1315,"nama":"Muh. Muyassir","kelas":"3B Wustha","kontak":"8521081818"},
+{"id":1316,"nama":"Muh. Nur Azza","kelas":"3B Wustha","kontak":""},
+{"id":1317,"nama":"Muh. Sasri","kelas":"3B Wustha","kontak":""},
+{"id":1318,"nama":"Muhammad Alif","kelas":"3B Wustha","kontak":""},
+{"id":1319,"nama":"Muhammad Azwan","kelas":"3B Wustha","kontak":"081245715900"},
+{"id":1320,"nama":"Muhammad Daffa","kelas":"3B Wustha","kontak":"85342506752"},
+{"id":1321,"nama":"Muhammad Fadhil Sunandar","kelas":"3B Wustha","kontak":"082347854255"},
+{"id":1322,"nama":"Putra Adnan Sholeh","kelas":"3B Wustha","kontak":""},
+{"id":1323,"nama":"Rama","kelas":"3B Wustha","kontak":""},
+{"id":1324,"nama":"Ahmad Furqan","kelas":"3C Wustha","kontak":""},
+{"id":1325,"nama":"Dimas Aryan Malik","kelas":"3C Wustha","kontak":""},
+{"id":1326,"nama":"Fadly Saputra","kelas":"3C Wustha","kontak":""},
+{"id":1327,"nama":"M. Fadhlan Ansar","kelas":"3C Wustha","kontak":""},
+{"id":1328,"nama":"M. Ikram","kelas":"3C Wustha","kontak":""},
+{"id":1329,"nama":"M. Risal","kelas":"3C Wustha","kontak":""},
+{"id":1330,"nama":"Muammar Fajrin","kelas":"3C Wustha","kontak":""},
+{"id":1331,"nama":"Muh Sul Ahyar","kelas":"3C Wustha","kontak":""},
+{"id":1332,"nama":"Muh. Arya Wijaya.H","kelas":"3C Wustha","kontak":""},
+{"id":1333,"nama":"Muh. Furqon","kelas":"3C Wustha","kontak":""},
+{"id":1334,"nama":"Muh. Mudatsir","kelas":"3C Wustha","kontak":""},
+{"id":1335,"nama":"Muh. Sultan","kelas":"3C Wustha","kontak":""},
+{"id":1336,"nama":"Muh. Syahrul","kelas":"3C Wustha","kontak":"8529891111"},
+{"id":1337,"nama":"Muhammad Al Habsyi","kelas":"3C Wustha","kontak":""},
+{"id":1338,"nama":"Muhammad Fahri","kelas":"3C Wustha","kontak":""},
+{"id":1339,"nama":"Muhammad Fajrin","kelas":"3C Wustha","kontak":""},
+{"id":1340,"nama":"Muhammad Putra Bintang","kelas":"3C Wustha","kontak":""},
+{"id":1341,"nama":"Muhammad Ridho Dafas","kelas":"3C Wustha","kontak":""},
+{"id":1342,"nama":"Nabil Khoirullah","kelas":"3C Wustha","kontak":""},
+{"id":1343,"nama":"Rahmat Anugrah","kelas":"3C Wustha","kontak":""},
+{"id":1344,"nama":"Syakirul Azzam","kelas":"3C Wustha","kontak":"085123296366"},
+{"id":1345,"nama":"Yusuf Kurniawan","kelas":"3C Wustha","kontak":""},
+{"id":1346,"nama":"Muhammad Alif","kelas":"3C Wustha","kontak":""},
+{"id":1347,"nama":"Muh Ali Fikri","kelas":"3C Wustha","kontak":""},
+{"id":1348,"nama":"Yusuf Qardhawi","kelas":"3C Wustha","kontak":""},
+{"id":1349,"nama":"Afrizal Ady","kelas":"3D Wustha","kontak":""},
+{"id":1350,"nama":"Alfin Saputra Genesa","kelas":"3D Wustha","kontak":""},
+{"id":1351,"nama":"Dalfin","kelas":"3D Wustha","kontak":""},
+{"id":1352,"nama":"Fadlu Rahman","kelas":"3D Wustha","kontak":""},
+{"id":1353,"nama":"Fahri","kelas":"3D Wustha","kontak":""},
+{"id":1354,"nama":"Galich Alfahrizi Agil .M","kelas":"3D Wustha","kontak":"085341289497"},
+{"id":1355,"nama":"Haryanto Rizal","kelas":"3D Wustha","kontak":"85255007247"},
+{"id":1356,"nama":"M. Akbar Noor Alamsyah","kelas":"3D Wustha","kontak":""},
+{"id":1357,"nama":"Muh. Faruq Syarif","kelas":"3D Wustha","kontak":""},
+{"id":1358,"nama":"Muh. Iksan","kelas":"3D Wustha","kontak":""},
+{"id":1359,"nama":"Muh. Zaki Mudir","kelas":"3D Wustha","kontak":""},
+{"id":1360,"nama":"Muhammad Abid","kelas":"3D Wustha","kontak":""},
+{"id":1361,"nama":"Muhammad Ryian Rahman","kelas":"3D Wustha","kontak":""},
+{"id":1362,"nama":"Muhammad Zikri","kelas":"3D Wustha","kontak":""},
+{"id":1363,"nama":"Muhcin Majidy","kelas":"3D Wustha","kontak":""},
+{"id":1364,"nama":"Rayyan Saputra","kelas":"3D Wustha","kontak":""},
+{"id":1365,"nama":"Syahrullah","kelas":"3D Wustha","kontak":"082247557463"},
+{"id":1366,"nama":"Zaky Pratama","kelas":"3D Wustha","kontak":""},
+{"id":1367,"nama":"Adrian","kelas":"3E Wustha","kontak":""},
+{"id":1368,"nama":"Al Faiz Dhuha Ramadhan","kelas":"3E Wustha","kontak":""},
+{"id":1369,"nama":"Enji","kelas":"3E Wustha","kontak":""},
+{"id":1370,"nama":"Herdin Hidayat","kelas":"3E Wustha","kontak":""},
+{"id":1371,"nama":"Irgi Ahmad Fahrezi","kelas":"3E Wustha","kontak":"8233078604"},
+{"id":1372,"nama":"M. Shiddiq Aufa","kelas":"3E Wustha","kontak":""},
+{"id":1373,"nama":"Muh. Alwi","kelas":"3E Wustha","kontak":""},
+{"id":1374,"nama":"Muh. Fahlan Ramadan","kelas":"3E Wustha","kontak":"89602345816"},
+{"id":1375,"nama":"Muh. Fahri","kelas":"3E Wustha","kontak":""},
+{"id":1376,"nama":"Muh. Mursalim","kelas":"3E Wustha","kontak":""},
+{"id":1377,"nama":"Muh. Nur Hidayat Nasrud","kelas":"3E Wustha","kontak":""},
+{"id":1378,"nama":"Muhammad Canra","kelas":"3E Wustha","kontak":""},
+{"id":1379,"nama":"Muhammad Dzulkifli","kelas":"3E Wustha","kontak":""},
+{"id":1380,"nama":"Muhammad Faiz","kelas":"3E Wustha","kontak":""},
+{"id":1381,"nama":"Muhammad Furqan Fahreza","kelas":"3E Wustha","kontak":""},
+{"id":1382,"nama":"Muhammad Israb","kelas":"3E Wustha","kontak":""},
+{"id":1383,"nama":"Muhammad Raihan Setiawan","kelas":"3E Wustha","kontak":""},
+{"id":1384,"nama":"Tasman","kelas":"3E Wustha","kontak":""},
+{"id":1385,"nama":"Wira Al Nazar","kelas":"3E Wustha","kontak":""},
+{"id":1386,"nama":"Addarul Qhutni Hajir","kelas":"1A MAPK","kontak":""},
+{"id":1387,"nama":"Ahmad Sabil","kelas":"1A MAPK","kontak":""},
+{"id":1388,"nama":"Aldifan Pratama","kelas":"1A MAPK","kontak":""},
+{"id":1389,"nama":"Ardiansyah","kelas":"1A MAPK","kontak":""},
+{"id":1390,"nama":"Hakmal Dian Maulana","kelas":"1A MAPK","kontak":""},
+{"id":1391,"nama":"Helmi Mubarak","kelas":"1A MAPK","kontak":""},
+{"id":1392,"nama":"Hidayat","kelas":"1A MAPK","kontak":"83733277936"},
+{"id":1393,"nama":"Husain Al Mubarak","kelas":"1A MAPK","kontak":""},
+{"id":1394,"nama":"M. Refinaldi","kelas":"1A MAPK","kontak":""},
+{"id":1395,"nama":"M.Fajar","kelas":"1A MAPK","kontak":""},
+{"id":1396,"nama":"Mahmudin Rizky Raafi","kelas":"1A MAPK","kontak":""},
+{"id":1397,"nama":"Manakarra Abd. Rahman","kelas":"1A MAPK","kontak":""},
+{"id":1398,"nama":"Muh. Almuahram","kelas":"1A MAPK","kontak":""},
+{"id":1399,"nama":"Muh. Fadil Fahrezi","kelas":"1A MAPK","kontak":""},
+{"id":1400,"nama":"Muh. Fatwa","kelas":"1A MAPK","kontak":""},
+{"id":1401,"nama":"Muh. Ilkam Rizqy","kelas":"1A MAPK","kontak":""},
+{"id":1402,"nama":"Muh. Najib Nawwaf. R","kelas":"1A MAPK","kontak":""},
+{"id":1403,"nama":"Muh. Ridzuwan","kelas":"1A MAPK","kontak":""},
+{"id":1404,"nama":"Muh. Rizqi Adira","kelas":"1A MAPK","kontak":""},
+{"id":1405,"nama":"Muhammad Alfin","kelas":"1A MAPK","kontak":"081343885905"},
+{"id":1406,"nama":"Muhammad Depu","kelas":"1A MAPK","kontak":"085243523899"},
+{"id":1407,"nama":"Muhammad Ilham","kelas":"1A MAPK","kontak":""},
+{"id":1408,"nama":"Muhammad Rizky Ali","kelas":"1A MAPK","kontak":"085299307016"},
+{"id":1409,"nama":"Muhammad Wildan","kelas":"1A MAPK","kontak":""},
+{"id":1410,"nama":"Padrian","kelas":"1A MAPK","kontak":""},
+{"id":1411,"nama":"Rahman","kelas":"1A MAPK","kontak":""},
+{"id":1412,"nama":"Ramadhan","kelas":"1A MAPK","kontak":""},
+{"id":1413,"nama":"Taufan","kelas":"1A MAPK","kontak":"082151533572"},
+{"id":1414,"nama":"Aco Khusnul Muayyad","kelas":"1B MAPK","kontak":""},
+{"id":1415,"nama":"Adil","kelas":"1B MAPK","kontak":""},
+{"id":1416,"nama":"Ahmad Fikri Alfarizy","kelas":"1B MAPK","kontak":"085242265177"},
+{"id":1417,"nama":"Ahmad Habib","kelas":"1B MAPK","kontak":""},
+{"id":1418,"nama":"Akram Fadhullah","kelas":"1B MAPK","kontak":""},
+{"id":1419,"nama":"Aqmal Zetiawan","kelas":"1B MAPK","kontak":"084822081180"},
+{"id":1420,"nama":"Chairul Amrin","kelas":"1B MAPK","kontak":""},
+{"id":1421,"nama":"Garid Syaqiq Albalqy","kelas":"1B MAPK","kontak":""},
+{"id":1422,"nama":"Ikra Alpin","kelas":"1B MAPK","kontak":""},
+{"id":1423,"nama":"Jamil","kelas":"1B MAPK","kontak":""},
+{"id":1424,"nama":"M. Putra Pratama","kelas":"1B MAPK","kontak":""},
+{"id":1425,"nama":"Moh. Alfin Wahid","kelas":"1B MAPK","kontak":""},
+{"id":1426,"nama":"Muh. Akbar","kelas":"1B MAPK","kontak":""},
+{"id":1427,"nama":"Muh. Aldin Arya Nugraha","kelas":"1B MAPK","kontak":"081354851421"},
+{"id":1428,"nama":"Muh. Anugerah","kelas":"1B MAPK","kontak":""},
+{"id":1429,"nama":"Muh. Lutfi Palalloi","kelas":"1B MAPK","kontak":"83840772994"},
+{"id":1430,"nama":"Muh. Syahid Fauzan","kelas":"1B MAPK","kontak":""},
+{"id":1431,"nama":"Muhammad Ikram","kelas":"1B MAPK","kontak":""},
+{"id":1432,"nama":"Muhammad Ilham Ramadhansyah","kelas":"1B MAPK","kontak":""},
+{"id":1433,"nama":"Muhammad Irfan","kelas":"1B MAPK","kontak":"082396844969"},
+{"id":1434,"nama":"Rifki AL-Hairi","kelas":"1B MAPK","kontak":""},
+{"id":1435,"nama":"Saifullah Ibnu Muhdi","kelas":"1B MAPK","kontak":""},
+{"id":1436,"nama":"Suhardi","kelas":"1B MAPK","kontak":""},
+{"id":1437,"nama":"Muh. Shaiful Akbar","kelas":"2 MAPK","kontak":""},
+{"id":1438,"nama":"Abd. Al Wali Nizam Al-Mulk","kelas":"2 MAPK","kontak":""},
+{"id":1439,"nama":"Abd. Mukhlis","kelas":"2 MAPK","kontak":"82189257497"},
+{"id":1440,"nama":"Afif Khalaf Faith","kelas":"2 MAPK","kontak":""},
+{"id":1441,"nama":"Ahmad Fauzan","kelas":"2 MAPK","kontak":""},
+{"id":1442,"nama":"Alif Afgan Nur","kelas":"2 MAPK","kontak":""},
+{"id":1443,"nama":"Alif Zakariya","kelas":"2 MAPK","kontak":"85240865113"},
+{"id":1444,"nama":"Andi Akbar Maulana","kelas":"2 MAPK","kontak":"81523997180"},
+{"id":1445,"nama":"Andi Ali Saputra","kelas":"2 MAPK","kontak":""},
+{"id":1446,"nama":"Arjuna Saputra","kelas":"2 MAPK","kontak":""},
+{"id":1447,"nama":"Carlie","kelas":"2 MAPK","kontak":""},
+{"id":1448,"nama":"Fakhri Ayyubi Ali","kelas":"2 MAPK","kontak":""},
+{"id":1449,"nama":"Fathur Rizqi","kelas":"2 MAPK","kontak":""},
+{"id":1450,"nama":"Firdaus Faiz","kelas":"2 MAPK","kontak":"083830114578"},
+{"id":1451,"nama":"Habli Akmal","kelas":"2 MAPK","kontak":""},
+{"id":1452,"nama":"M. Furqan","kelas":"2 MAPK","kontak":"085311778194"},
+{"id":1453,"nama":"M. Ibnu Qalbi Aksa","kelas":"2 MAPK","kontak":""},
+{"id":1454,"nama":"M. Khaerul Izzat","kelas":"2 MAPK","kontak":""},
+{"id":1455,"nama":"M. Riziq Syah Ramadhan","kelas":"2 MAPK","kontak":""},
+{"id":1456,"nama":"M. Tahir","kelas":"2 MAPK","kontak":""},
+{"id":1457,"nama":"Muh. Arya M","kelas":"2 MAPK","kontak":""},
+{"id":1458,"nama":"Muh. Chandra Firdatama","kelas":"2 MAPK","kontak":""},
+{"id":1459,"nama":"Muh. Deni Hansyah","kelas":"2 MAPK","kontak":""},
+{"id":1460,"nama":"Muh. Ezzul Amani","kelas":"2 MAPK","kontak":""},
+{"id":1461,"nama":"Muh. Fadli","kelas":"2 MAPK","kontak":""},
+{"id":1462,"nama":"Muh. Fatiir Al'kahfi","kelas":"2 MAPK","kontak":""},
+{"id":1463,"nama":"Muh. Firjatullah","kelas":"2 MAPK","kontak":""},
+{"id":1464,"nama":"Muh. Muqri Muhajir","kelas":"2 MAPK","kontak":""},
+{"id":1465,"nama":"Muh. Rizwan Syah","kelas":"2 MAPK","kontak":""},
+{"id":1466,"nama":"Muhammad Arham","kelas":"2 MAPK","kontak":""},
+{"id":1467,"nama":"Muhammad Dimas","kelas":"2 MAPK","kontak":""},
+{"id":1468,"nama":"Muhammad Fadli","kelas":"2 MAPK","kontak":""},
+{"id":1469,"nama":"Muhammad Fauzi Al Faridzi","kelas":"2 MAPK","kontak":""},
+{"id":1470,"nama":"Muhammad Higuain Rizal","kelas":"2 MAPK","kontak":""},
+{"id":1471,"nama":"Muhammad Ridwan syah","kelas":"2 MAPK","kontak":""},
+{"id":1472,"nama":"Muhammad Riski Abdul Khalik","kelas":"2 MAPK","kontak":""},
+{"id":1473,"nama":"Nasrullah","kelas":"2 MAPK","kontak":""},
+{"id":1474,"nama":"Rifaldi Pratama","kelas":"2 MAPK","kontak":""},
+{"id":1475,"nama":"Sahril Ardiansyah","kelas":"2 MAPK","kontak":""},
+{"id":1476,"nama":"Syamsul Alam","kelas":"2 MAPK","kontak":""},
+{"id":1477,"nama":"Tifatul Mumtaz","kelas":"2 MAPK","kontak":""},
+{"id":1478,"nama":"Zakwan Zahir","kelas":"2 MAPK","kontak":"0882022228875"},
+{"id":1479,"nama":"Muh.Asadullah Jauhari","kelas":"3 MAPK","kontak":"081354737134"},
+{"id":1480,"nama":"Ahmad Azwar Luthfi","kelas":"3 MAPK","kontak":""},
+{"id":1481,"nama":"Ahmad Luthfi","kelas":"3 MAPK","kontak":""},
+{"id":1482,"nama":"Akbar Maulana","kelas":"3 MAPK","kontak":""},
+{"id":1483,"nama":"Aldi Syafiq","kelas":"3 MAPK","kontak":""},
+{"id":1484,"nama":"Aldian","kelas":"3 MAPK","kontak":""},
+{"id":1485,"nama":"Arya Dahlan M","kelas":"3 MAPK","kontak":""},
+{"id":1486,"nama":"Bahrul Ulum","kelas":"3 MAPK","kontak":""},
+{"id":1487,"nama":"Dimas sandi","kelas":"3 MAPK","kontak":""},
+{"id":1488,"nama":"Erick Erwin","kelas":"3 MAPK","kontak":""},
+{"id":1489,"nama":"Fauzan","kelas":"3 MAPK","kontak":""},
+{"id":1490,"nama":"Huwaidi","kelas":"3 MAPK","kontak":""},
+{"id":1491,"nama":"Ilham","kelas":"3 MAPK","kontak":""},
+{"id":1492,"nama":"M. Anugrah","kelas":"3 MAPK","kontak":""},
+{"id":1493,"nama":"Muh. Fadly","kelas":"3 MAPK","kontak":""},
+{"id":1494,"nama":"Muh. Heryandi","kelas":"3 MAPK","kontak":""},
+{"id":1495,"nama":"Muh.Miftha","kelas":"3 MAPK","kontak":""},
+{"id":1496,"nama":"Muh.Taslim","kelas":"3 MAPK","kontak":""},
+{"id":1497,"nama":"Muhammad Alwi","kelas":"3 MAPK","kontak":""},
+{"id":1498,"nama":"Muhammad Arsan","kelas":"3 MAPK","kontak":""},
+{"id":1499,"nama":"Rahmat Fadel Asmail","kelas":"3 MAPK","kontak":""},
+{"id":1500,"nama":"Rifki Maulana","kelas":"3 MAPK","kontak":""},
+{"id":1501,"nama":"Risky Aiman","kelas":"3 MAPK","kontak":""},
+{"id":1502,"nama":"RM. Syahru Ramadhan Ar Rifqi","kelas":"3 MAPK","kontak":""},
+{"id":1503,"nama":"Zakri","kelas":"3 MAPK","kontak":""},
+{"id":1504,"nama":"M. Fikran","kelas":"1 PDF Ulya","kontak":""},
+{"id":1505,"nama":"Abyan Syaikhan","kelas":"1 PDF Ulya","kontak":""},
+{"id":1506,"nama":"Ahmad Fatan Fitrah","kelas":"1 PDF Ulya","kontak":""},
+{"id":1507,"nama":"Aswad Maulidan","kelas":"1 PDF Ulya","kontak":""},
+{"id":1508,"nama":"Awaluddin","kelas":"1 PDF Ulya","kontak":""},
+{"id":1509,"nama":"Habrul Ummah","kelas":"1 PDF Ulya","kontak":"082155821214"},
+{"id":1510,"nama":"Irfan. S","kelas":"1 PDF Ulya","kontak":"0823933988520"},
+{"id":1511,"nama":"Jamil","kelas":"1 PDF Ulya","kontak":""},
+{"id":1512,"nama":"Khairul Ummah","kelas":"1 PDF Ulya","kontak":""},
+{"id":1513,"nama":"M. Luthfi Ursyid","kelas":"1 PDF Ulya","kontak":""},
+{"id":1514,"nama":"M. Taqwin","kelas":"1 PDF Ulya","kontak":""},
+{"id":1515,"nama":"Muh. Alif","kelas":"1 PDF Ulya","kontak":""},
+{"id":1516,"nama":"Muh. Aswad Musakkir","kelas":"1 PDF Ulya","kontak":""},
+{"id":1517,"nama":"Muhammad Arif Abrar","kelas":"1 PDF Ulya","kontak":""},
+{"id":1518,"nama":"Muhammad Furqan Alfaruq","kelas":"1 PDF Ulya","kontak":""},
+{"id":1519,"nama":"Muhammad Irdam","kelas":"1 PDF Ulya","kontak":""},
+{"id":1520,"nama":"Rendy","kelas":"1 PDF Ulya","kontak":""},
+{"id":1521,"nama":"Resky","kelas":"1 PDF Ulya","kontak":""},
+{"id":1522,"nama":"Syafaat Nabil","kelas":"1 PDF Ulya","kontak":"082259262644"},
+{"id":1523,"nama":"Muh. Fahrul Firman","kelas":"2 PDF Ulya","kontak":"85240608179"},
+{"id":1524,"nama":"Aco Ahmad Al-Fahry","kelas":"2 PDF Ulya","kontak":""},
+{"id":1525,"nama":"Faril Muhammad Isra","kelas":"2 PDF Ulya","kontak":""},
+{"id":1526,"nama":"Hilal Fitrah","kelas":"2 PDF Ulya","kontak":""},
+{"id":1527,"nama":"Imam Zakariya Al Anshori","kelas":"2 PDF Ulya","kontak":""},
+{"id":1528,"nama":"Kemal Tagyeer Mukhlisin","kelas":"2 PDF Ulya","kontak":""},
+{"id":1529,"nama":"Muh. Fadly Iqbal","kelas":"2 PDF Ulya","kontak":""},
+{"id":1530,"nama":"Muh. Raihan Husain","kelas":"2 PDF Ulya","kontak":""},
+{"id":1531,"nama":"Muh. Takbir","kelas":"2 PDF Ulya","kontak":""},
+{"id":1532,"nama":"Muh. Zulfikar","kelas":"2 PDF Ulya","kontak":""},
+{"id":1533,"nama":"Muhammad Aiman","kelas":"2 PDF Ulya","kontak":""},
+{"id":1534,"nama":"Nur Alam","kelas":"2 PDF Ulya","kontak":""},
+{"id":1535,"nama":"Putra Puja Pratama","kelas":"2 PDF Ulya","kontak":""},
+{"id":1536,"nama":"Sumardi","kelas":"2 PDF Ulya","kontak":""},
+{"id":1537,"nama":"Syahreza Rafly Syam","kelas":"2 PDF Ulya","kontak":""},
+{"id":1538,"nama":"Wise al Qadri","kelas":"2 PDF Ulya","kontak":""},
+{"id":1539,"nama":"Abdullah","kelas":"3 PDF Ulya","kontak":""},
+{"id":1540,"nama":"Achmad Fadel El-Rumi","kelas":"3 PDF Ulya","kontak":""},
+{"id":1541,"nama":"Adnan","kelas":"3 PDF Ulya","kontak":""},
+{"id":1542,"nama":"Ahmad Al Maqsum Bahana","kelas":"3 PDF Ulya","kontak":""},
+{"id":1543,"nama":"Al-Asrar","kelas":"3 PDF Ulya","kontak":""},
+{"id":1544,"nama":"Andi Khalil Gibrani","kelas":"3 PDF Ulya","kontak":""},
+{"id":1545,"nama":"Dzul Jalali Ikram","kelas":"3 PDF Ulya","kontak":""},
+{"id":1546,"nama":"Hajes Shihad","kelas":"3 PDF Ulya","kontak":""},
+{"id":1547,"nama":"Haris Dasa Putra","kelas":"3 PDF Ulya","kontak":""},
+{"id":1548,"nama":"Ilham Junaid","kelas":"3 PDF Ulya","kontak":""},
+{"id":1549,"nama":"Irham Junaid","kelas":"3 PDF Ulya","kontak":""},
+{"id":1550,"nama":"Irsyad Khoiruizzadi","kelas":"3 PDF Ulya","kontak":""},
+{"id":1551,"nama":"Muh Agung Resqi","kelas":"3 PDF Ulya","kontak":""},
+{"id":1552,"nama":"Muh Asmirul Syahid","kelas":"3 PDF Ulya","kontak":""},
+{"id":1553,"nama":"Muh Emil Shadewa","kelas":"3 PDF Ulya","kontak":""},
+{"id":1554,"nama":"Muh Fahri Rahman","kelas":"3 PDF Ulya","kontak":""},
+{"id":1555,"nama":"Muh Iksan","kelas":"3 PDF Ulya","kontak":""},
+{"id":1556,"nama":"Muhammad Al Farabi Rahmat","kelas":"3 PDF Ulya","kontak":""},
+{"id":1557,"nama":"Muhammad Ali akbar","kelas":"3 PDF Ulya","kontak":""},
+{"id":1558,"nama":"Muhammad Ifnu Fajrin","kelas":"3 PDF Ulya","kontak":""},
+{"id":1559,"nama":"Putra Ramadhan","kelas":"3 PDF Ulya","kontak":""}
+];
+var santri=DB.get('gh_santri',[]);if(!santri.length&&SANTRI_SEED.length){santri=SANTRI_SEED.map(function(x){return{id:x.id,nama:x.nama,kelas:x.kelas,kontak:x.kontak}});DB.set('gh_santri',santri)}
 var izin=DB.get('gh_izin',[]);
 var beku=DB.get('gh_beku',[]);
 var pelanggaran=DB.get('gh_pelanggaran',[]);
-var daftarKelas=DB.get('gh_kelas',(window.SEED_KELAS||['1 SPM','2 SPM','3 SPM','1 A Wustha','1 B Wustha','1 C Wustha','1 D Wustha','1 E Wustha','2 A','2 B','2 C','2 D','2 E','3 A','3 B','3 C','3 D','3 E']));
+var daftarKelas=DB.get('gh_kelas',KELAS_SEED.slice());KELAS_SEED.forEach(function(k){if(daftarKelas.indexOf(k)===-1)daftarKelas.push(k)});DB.set('gh_kelas',daftarKelas);
+var WALI_SEED={"1 SPM": "Ust. Ainurrahim Hasan,S.Pd.", "1A Wustha": "Ust. Ahmad Fauzan Aditya", "1B Wustha": "Ust. M. Kholil. H, S.Pd", "1C Wustha": "Ust. Hasri Fajar, S.Sos", "1D Wustha": "Ust. Ahmad Hidayatullah, S.Ag", "1E Wustha": "Ust. Rian Dermawan", "2A Wustha": "Ust. Rosyam Nur Hidayat", "2B Wustha": "Ust. Ruslydin", "2C Wustha": "Ust. Dariswan", "2D Wustha": "Ust. Nurul Hilal", "3A Wustha": "Ust. Ainurrahim Hasan,S.Pd. / Ust. Hasbul Hasan", "3B Wustha": "Ust. Muhammad Yusri", "3C Wustha": "Ust. Alim Riziqil Mubarak", "3D Wustha": "Ust. Muhammad Sofyan", "3E Wustha": "Ust. Muhammad Ilham. SF, S.Pd", "1A MAPK": "Ust. Zulkifli, M.Ag", "1B MAPK": "Ust. A. Umar Jamaluddin, S.Ag", "2 MAPK": "Ust. Darawansyah", "3 MAPK": "Ust. Syarif, M.Ag", "1 PDF Ulya": "Ust. Mahmud MD / Ust. Khalilurrahman,S.Pd.", "2 PDF Ulya": "Ust. Muhammad Khalilurrahman, S.Pd", "3 PDF Ulya": "Ust. Faisal Nur Shadiq Shabri, Lc., M.H"};
+var waliKelas=DB.get('gh_wali_kelas',{});if(!waliKelas||typeof waliKelas!=='object')waliKelas={};Object.keys(WALI_SEED).forEach(function(k){if(!waliKelas[k])waliKelas[k]=WALI_SEED[k]});DB.set('gh_wali_kelas',waliKelas);
 var kuotaSantri=DB.get('gh_kuota_santri',{});
 var defaultKuota=DB.get('gh_default_kuota',DEFAULT_KUOTA);
 var aktivitas=DB.get('gh_aktivitas',[]);
-/* SEED SANTRI PER KELAS (TA 2026-2027) - gabung sekali, tidak menimpa data yang sudah ada */
-var SEED_VER=1;
-(function(){try{
-  if(!window.SEED_SANTRI||!window.SEED_SANTRI.length)return;
-  if(parseInt(localStorage.getItem('gh_seed_ver')||'0',10)>=SEED_VER)return;
-  var ada={},seedN={},tambah=0;
-  santri.forEach(function(s){var k=String(s.nama||'').toLowerCase()+'|'+String(s.kelas||'').toLowerCase();ada[k]=(ada[k]||0)+1});
-  window.SEED_SANTRI.forEach(function(s){var k=s.nama.toLowerCase()+'|'+s.kelas.toLowerCase();seedN[k]=(seedN[k]||0)+1;
-    if((ada[k]||0)>=seedN[k])return;
-    if(santri.some(function(x){return x.id===s.id}))s.id=nextId();
-    santri.push({id:s.id,nama:s.nama,kelas:s.kelas,kontak:s.kontak||''});ada[k]=(ada[k]||0)+1;tambah++});
-  if(window.SEED_KELAS){var kk=false;window.SEED_KELAS.forEach(function(k){if(!daftarKelas.some(function(x){return String(x).toLowerCase()===k.toLowerCase()})){daftarKelas.push(k);kk=true}});if(kk)DB.set('gh_kelas',daftarKelas)}
-  if(tambah)DB.set('gh_santri',santri);
-  localStorage.setItem('gh_seed_ver',String(SEED_VER));
-}catch(e){}})();
-
 
 function getAdminPassword(){return DB.get('gh_admin_pass',ADMIN_PASSWORD)}
 function getUserPassword(){return DB.get('gh_user_pass',USER_PASSWORD)}
@@ -438,7 +1011,7 @@ function logout(){DB.set('gh_session',null);location.reload()}
 function handleResize(){var mh=$('mobileHeader');if(!mh)return;if(window.innerWidth<=768)mh.style.display='flex';else{mh.style.display='none';var sb=$('sidebar'),so=$('sidebarOverlay');if(sb)sb.classList.remove('open');if(so)so.classList.remove('show')}}
 function scrollActiveNavIntoView(){var wrap=$('navScroll');if(!wrap)return;var active=wrap.querySelector('.nav-item.active');if(!active)return;var wrapRect=wrap.getBoundingClientRect();var itemRect=active.getBoundingClientRect();if(itemRect.top<wrapRect.top||itemRect.bottom>wrapRect.bottom){var offset=active.offsetTop-(wrap.clientHeight/2)+(active.clientHeight/2);wrap.scrollTo({top:Math.max(0,offset),behavior:'smooth'})}}
 
-function openModal(id){if(!isAdmin()&&['modalSantri','modalKelas','modalImport','modalPelanggaran','modalKuotaSantri'].indexOf(id)!==-1){showToast('Akses ditolak. Hanya admin.','error');return}var el=$(id);if(el)el.classList.add('active');if(id==='modalSantri')updateKelasSelect();if(id==='modalPelanggaran')updateNamaSelect()}
+function openModal(id){if(!isAdmin()&&['modalSantri','modalEditSantri','modalKelas','modalImport','modalPelanggaran','modalKuotaSantri'].indexOf(id)!==-1){showToast('Akses ditolak. Hanya admin.','error');return}var el=$(id);if(el)el.classList.add('active');if(id==='modalSantri')updateKelasSelect();if(id==='modalPelanggaran')updateNamaSelect()}
 function closeModal(id){var el=$(id);if(el)el.classList.remove('active')}
 function initModalDismissers(){document.addEventListener('click',function(e){if(e.target.classList&&e.target.classList.contains('modal-overlay')&&e.target.classList.contains('active')){e.target.classList.remove('active')}});document.addEventListener('keydown',function(e){if(e.key==='Escape'||e.key==='Esc'){var anyModal=false;document.querySelectorAll('.modal-overlay.active').forEach(function(m){m.classList.remove('active');anyModal=true});if(!anyModal){var ac=$('autocompleteList');if(ac)ac.classList.remove('show')}}})}
 
@@ -456,14 +1029,14 @@ function fuzzyScore(q,t){q=q.toLowerCase().trim();t=t.toLowerCase().trim();if(!q
 function searchSantri(q){if(!q||!q.trim())return[];var r=[];santri.forEach(function(s){var sc=Math.max(fuzzyScore(q,s.nama),fuzzyScore(q,s.kelas)*0.3);if(sc>0)r.push({data:s,score:sc})});r.sort(function(a,b){return b.score-a.score});return r.slice(0,8).map(function(x){return x.data})}
 var highlightIdx=-1;
 function updateHighlight(items){items.forEach(function(it,i){it.classList.toggle('highlighted',i===highlightIdx)})}
-function renderAutocomplete(results){var acList=$('autocompleteList');if(!acList)return;highlightIdx=-1;if(!results.length){acList.innerHTML='<div class="autocomplete-empty">Tidak ada hasil</div>';acList.classList.add('show');return}var html='';results.forEach(function(s){html+='<div class="autocomplete-item" data-id="'+s.id+'">';html+='<div class="ac-name">'+escapeHtml(s.nama)+'</div>';html+='<div class="ac-meta">'+escapeHtml(s.kelas)+(s.kontak?' · '+escapeHtml(s.kontak):'')+'</div>';html+='</div>'});acList.innerHTML=html;acList.querySelectorAll('.autocomplete-item').forEach(function(item){item.addEventListener('click',function(){var id=parseInt(item.dataset.id);var s=santri.find(function(x){return x.id===id});if(s){$('fNamaInput').value=s.nama;$('fNama').value=s.nama;$('fKelas').value=s.kelas;if(s.kontak&&!$('fPenjemput').value)$('fPenjemput').value=s.kontak;acList.classList.remove('show');cekKuotaSantri(s.nama,s.kelas,s.id)}})});acList.classList.add('show')}
+function renderAutocomplete(results){var acList=$('autocompleteList');if(!acList)return;highlightIdx=-1;if(!results.length){acList.innerHTML='<div class="autocomplete-empty">Tidak ada hasil</div>';acList.classList.add('show');return}var html='';results.forEach(function(s){html+='<div class="autocomplete-item" data-id="'+s.id+'">';html+='<div class="ac-name">'+escapeHtml(s.nama)+'</div>';html+='<div class="ac-meta">'+escapeHtml(s.kelas)+(s.kontak?' · '+escapeHtml(s.kontak):'')+'</div>';html+='</div>'});acList.innerHTML=html;acList.querySelectorAll('.autocomplete-item').forEach(function(item){item.addEventListener('click',function(){var id=parseInt(item.dataset.id);var s=santri.find(function(x){return x.id===id});if(s){$('fNamaInput').value=s.nama;$('fNama').value=s.nama;$('fKelas').value=s.kelas;if(s.kontak&&!$('fPenjemput').value)$('fPenjemput').value=s.kontak;syncWaliKelasField();acList.classList.remove('show');cekKuotaSantri(s.nama,s.kelas,s.id)}})});acList.classList.add('show')}
 function cekKuotaSantri(nama,kelas,santriId){if(isSantriBeku(nama,kelas,santriId)){var bk=beku.find(function(b){if(!b.status)return false;if(b.berakhir&&b.berakhir!=='selamanya'&&b.berakhir<todayStr())return false;if(santriId&&b.santriId===santriId)return true;return b.nama===nama&&b.kelas===kelas});showToast('Peringatan: '+nama+' sedang dibekukan. Alasan: '+(bk?bk.alasan:'-'),'error');return}var jatah=getKuotaByNama(nama,kelas);var terpakai=getTotalHariIzinSantri(nama,kelas);var sisa=Math.max(0,jatah-terpakai);var periode=formatDateID(getPeriodeStart())+' - '+formatDateID(getPeriodeEnd());if(sisa<=0){showToast('Kuota izin normal '+nama+' habis ('+jatah+' hari). Hanya bisa Izin Darurat.','error')}else if(sisa<=3){showToast('Sisa kuota '+nama+': '+sisa+' hari (periode: '+periode+')','warning')}}
 function getKuotaByNama(nama,kelas){var s=santri.find(function(x){if(x.nama!==nama)return false;if(kelas&&x.kelas!==kelas)return false;return true});if(!s)return defaultKuota;return kuotaSantri[s.id]!==undefined?kuotaSantri[s.id]:defaultKuota}
 function attachAutocomplete(){var input=$('fNamaInput');if(!input)return;var acList=$('autocompleteList');input.addEventListener('input',function(){var q=this.value;if($('fNama'))$('fNama').value='';if($('fKelas'))$('fKelas').value='';if(!q||!q.trim()){if(acList)acList.classList.remove('show');return}renderAutocomplete(searchSantri(q))});input.addEventListener('keydown',function(e){if(!acList||!acList.classList.contains('show'))return;var items=acList.querySelectorAll('.autocomplete-item');if(!items.length)return;if(e.key==='ArrowDown'){e.preventDefault();highlightIdx=Math.min(highlightIdx+1,items.length-1);updateHighlight(items)}else if(e.key==='ArrowUp'){e.preventDefault();highlightIdx=Math.max(highlightIdx-1,0);updateHighlight(items)}else if(e.key==='Enter'){e.preventDefault();if(highlightIdx>=0&&items[highlightIdx])items[highlightIdx].click()}})}
 document.addEventListener('click',function(e){var acList=$('autocompleteList');if(acList&&!e.target.closest('.autocomplete-wrap'))acList.classList.remove('show')});
 
 /* FORM IZIN */
-function initFormIzin(){var form=$('formIzin');if(!form)return;form.addEventListener('submit',function(e){e.preventDefault();if(!isAdmin()){showToast('Akses ditolak.','error');return}var nama=$('fNama').value||$('fNamaInput').value.trim();var kelas=$('fKelas').value;var jenis=$('fJenis').value;var tanggal=$('fTanggal').value;var batasKembali=$('fBatasKembali').value;var penjemput=$('fPenjemput').value.trim();var alasan=$('fAlasan').value;var keterangan=$('fKeterangan').value;if(!nama){showToast('Nama wajib diisi','error');return}if(!kelas){showToast('Pilih nama dari saran','error');return}if(!batasKembali){showToast('Batas tanggal wajib diisi','error');return}if(daysBetween(tanggal,batasKembali)<0){showToast('Batas tidak boleh sebelum tanggal izin','error');return}var santriAktif=santri.find(function(x){return x.nama===nama&&x.kelas===kelas});var santriIdAktif=santriAktif?santriAktif.id:null;if(isSantriBeku(nama,kelas,santriIdAktif)){var bk=beku.find(function(b){if(!b.status)return false;if(b.berakhir&&b.berakhir!=='selamanya'&&b.berakhir<todayStr())return false;if(santriIdAktif&&b.santriId===santriIdAktif)return true;return b.nama===nama&&b.kelas===kelas});showToast('Santri sedang dibekukan. Alasan: '+(bk?bk.alasan:'-'),'error');return}if(jenis==='Normal'){var jatah=getKuotaByNama(nama,kelas);var terpakai=getTotalHariIzinSantri(nama,kelas);var sisa=jatah-terpakai;var selisih=daysBetween(tanggal,batasKembali);var durasiBaru=Math.max(1,selisih+1);var pStart=getPeriodeStart();var pEnd=getPeriodeEnd();if(tanggal<pStart||tanggal>pEnd){showToast('Tanggal izin di luar periode tahun ajaran aktif','error');return}if(batasKembali>pEnd){showToast('Batas kembali melebihi akhir periode','error');return}if(sisa<=0){showToast('Kuota habis ('+terpakai+'/'+jatah+' hari). Gunakan Izin Darurat.','error');return}if(durasiBaru>sisa){showToast('Sisa kuota '+nama+' hanya '+sisa+' hari, tidak cukup untuk '+durasiBaru+' hari.','error');return}}izin.push({id:nextId(),santriId:santriIdAktif,nama:nama,kelas:kelas,jenis:jenis,tanggal:tanggal,batasKembali:batasKembali,penjemput:penjemput,alasan:alasan,keterangan:keterangan,status:'Belum Kembali',tglKembali:null});DB.set('gh_izin',izin);logAktivitas('Tambah Izin',nama+' ('+kelas+') - '+jenis);form.reset();var today=todayStr();$('fTanggal').value=today;$('fBatasKembali').value=addDays(today,OFFSET);$('fBatasKembali').dataset.auto='true';updateBatasInfo();showToast('Permohonan disimpan');renderAll()})}
+function initFormIzin(){var form=$('formIzin');if(!form)return;form.addEventListener('submit',function(e){e.preventDefault();if(!isAdmin()){showToast('Akses ditolak.','error');return}var nama=$('fNama').value||$('fNamaInput').value.trim();var kelas=$('fKelas').value;var jenis=$('fJenis').value;var tanggal=$('fTanggal').value;var batasKembali=$('fBatasKembali').value;var penjemput=$('fPenjemput').value.trim();var alasan=$('fAlasan').value;var keterangan=$('fKeterangan').value;if(!nama){showToast('Nama wajib diisi','error');return}if(!kelas){showToast('Pilih nama dari saran','error');return}if(!batasKembali){showToast('Batas tanggal wajib diisi','error');return}if(daysBetween(tanggal,batasKembali)<0){showToast('Batas tidak boleh sebelum tanggal izin','error');return}var santriAktif=santri.find(function(x){return x.nama===nama&&x.kelas===kelas});var santriIdAktif=santriAktif?santriAktif.id:null;if(santriAktif){var hpBaru=extractPhone(penjemput);if(hpBaru&&!String(santriAktif.kontak||'').trim()){santriAktif.kontak=hpBaru;DB.set('gh_santri',santri);logAktivitas('Update Kontak Santri',santriAktif.nama+' ('+santriAktif.kelas+') - '+hpBaru);showToast('No. kontak '+santriAktif.nama+' tersimpan ke data santri')}}if(isSantriBeku(nama,kelas,santriIdAktif)){var bk=beku.find(function(b){if(!b.status)return false;if(b.berakhir&&b.berakhir!=='selamanya'&&b.berakhir<todayStr())return false;if(santriIdAktif&&b.santriId===santriIdAktif)return true;return b.nama===nama&&b.kelas===kelas});showToast('Santri sedang dibekukan. Alasan: '+(bk?bk.alasan:'-'),'error');return}if(jenis==='Normal'){var jatah=getKuotaByNama(nama,kelas);var terpakai=getTotalHariIzinSantri(nama,kelas);var sisa=jatah-terpakai;var selisih=daysBetween(tanggal,batasKembali);var durasiBaru=Math.max(1,selisih+1);var pStart=getPeriodeStart();var pEnd=getPeriodeEnd();if(tanggal<pStart||tanggal>pEnd){showToast('Tanggal izin di luar periode tahun ajaran aktif','error');return}if(batasKembali>pEnd){showToast('Batas kembali melebihi akhir periode','error');return}if(sisa<=0){showToast('Kuota habis ('+terpakai+'/'+jatah+' hari). Gunakan Izin Darurat.','error');return}if(durasiBaru>sisa){showToast('Sisa kuota '+nama+' hanya '+sisa+' hari, tidak cukup untuk '+durasiBaru+' hari.','error');return}}izin.push({id:nextId(),santriId:santriIdAktif,nama:nama,kelas:kelas,waliKelas:getWaliKelas(kelas),jenis:jenis,tanggal:tanggal,batasKembali:batasKembali,penjemput:penjemput,alasan:alasan,keterangan:keterangan,status:'Belum Kembali',tglKembali:null});DB.set('gh_izin',izin);logAktivitas('Tambah Izin',nama+' ('+kelas+') - '+jenis);form.reset();var today=todayStr();$('fTanggal').value=today;$('fBatasKembali').value=addDays(today,OFFSET);$('fBatasKembali').dataset.auto='true';updateBatasInfo();showToast('Permohonan disimpan');renderAll()})}
 
 function updateKelasSelect(){var s=$('sKelas');if(!s)return;var html='<option value="">-- Pilih Kelas --</option>';daftarKelas.forEach(function(k){html+='<option value="'+escapeAttr(k)+'">'+escapeHtml(k)+'</option>'});s.innerHTML=html}
 function updateNamaSelect(){var p=$('pNama');if(!p)return;var html='<option value="">-- Pilih Santri --</option>';var list=santri.slice().sort(function(a,b){if(a.nama===b.nama)return a.kelas<b.kelas?-1:1;return a.nama<b.nama?-1:1});list.forEach(function(s){html+='<option value="'+s.id+'" data-nama="'+escapeAttr(s.nama)+'" data-kelas="'+escapeAttr(s.kelas)+'">'+escapeHtml(s.nama)+' ('+escapeHtml(s.kelas)+')</option>'});p.innerHTML=html}
@@ -471,6 +1044,7 @@ function updateBekuNamaSelect(){var sel=$('bNama');if(!sel)return;var currentVal
 
 function initForms(){
 var fs=$('formSantri');if(fs)fs.addEventListener('submit',function(e){e.preventDefault();if(!isAdmin()){showToast('Akses ditolak','error');return}var nama=$('sNama').value.trim();var kelas=$('sKelas').value;var kontak=$('sKontak').value.trim();if(santri.some(function(s){return s.nama.toLowerCase()===nama.toLowerCase()&&s.kelas===kelas})){showToast('Santri sudah terdaftar','error');return}var newId=nextId();santri.push({id:newId,nama:nama,kelas:kelas,kontak:kontak});DB.set('gh_santri',santri);kuotaSantri[newId]=defaultKuota;DB.set('gh_kuota_santri',kuotaSantri);logAktivitas('Tambah Santri',nama+' ('+kelas+')');e.target.reset();closeModal('modalSantri');showToast('Santri ditambahkan dengan kuota '+defaultKuota+' hari');renderAll()});
+var fe=$('formEditSantri');if(fe)fe.addEventListener('submit',saveEditSantri);
 var fk=$('formKelas');if(fk)fk.addEventListener('submit',function(e){e.preventDefault();if(!isAdmin()){showToast('Akses ditolak','error');return}var n=$('tkNama').value.trim();if(!n){showToast('Nama kelas wajib diisi','error');return}if(daftarKelas.some(function(k){return k.toLowerCase()===n.toLowerCase()})){showToast('Kelas sudah ada','error');return}daftarKelas.push(n);DB.set('gh_kelas',daftarKelas);logAktivitas('Tambah Kelas',n);e.target.reset();closeModal('modalKelas');showToast('Kelas ditambahkan');renderAll()});
 var fkd=$('formKuotaDefault');if(fkd)fkd.addEventListener('submit',function(e){e.preventDefault();if(!isAdmin()){showToast('Akses ditolak','error');return}var v=parseInt($('kDefault').value);if(isNaN(v)||v<0||v>365){showToast('Nilai harus 0-365','error');return}if(!confirm('Terapkan kuota '+v+' hari ke SEMUA santri? Data kuota khusus akan ditimpa.'))return;defaultKuota=v;DB.set('gh_default_kuota',defaultKuota);kuotaSantri={};santri.forEach(function(s){kuotaSantri[s.id]=defaultKuota});DB.set('gh_kuota_santri',kuotaSantri);logAktivitas('Ubah Kuota Default',v+' hari');showToast('Kuota default '+v+' hari diterapkan ke '+santri.length+' santri');renderAll()});
 var fta=$('formTahunAjaran');if(fta)fta.addEventListener('submit',function(e){e.preventDefault();if(!isAdmin()){showToast('Akses ditolak','error');return}var v=$('taStartDate').value;if(!v){showToast('Pilih tanggal','error');return}var parts=v.split('-');if(parts.length!==3){showToast('Format tanggal tidak valid','error');return}var mmdd=parts[1]+'-'+parts[2];if(!confirm('Simpan perubahan tahun ajaran?\n\nPeriode mulai: '+parts[1]+'/'+parts[2]+' (setiap tahun)'))return;setTahunAjaranStart(mmdd);ensureKuotaExists();renderTahunAjaranForm();logAktivitas('Ubah Tahun Ajaran',parts[1]+'/'+parts[2]);showToast('Tahun ajaran disimpan');renderAll()});
@@ -529,7 +1103,7 @@ function renderKelasTabs(){var c=$('kelasTabs');if(!c)return;var cb={};santri.fo
 function renderKuotaKelasTabs(){var c=$('kuotaKelasTabs');if(!c)return;var cb={};santri.forEach(function(s){cb[s.kelas]=(cb[s.kelas]||0)+1});var h='<button type="button" class="kelas-tab '+(kuotaKelasFilter==='__semua__'?'active':'')+'" data-kuota-kelas="__semua__">Semua <span class="count">'+santri.length+'</span></button>';daftarKelas.forEach(function(k){var ct=cb[k]||0;h+='<button type="button" class="kelas-tab '+(kuotaKelasFilter===k?'active':'')+'" data-kuota-kelas="'+escapeAttr(k)+'">'+escapeHtml(k)+' <span class="count">'+ct+'</span></button>'});c.innerHTML=h}
 function initKelasTabDelegation(){var kelasTabsEl=$('kelasTabs');if(kelasTabsEl){kelasTabsEl.addEventListener('click',function(e){var delBtn=e.target.closest('[data-hapus-kelas]');if(delBtn){e.stopPropagation();hapusKelas(delBtn.getAttribute('data-hapus-kelas'));return}var tab=e.target.closest('[data-kelas]');if(tab)selectKelas(tab.getAttribute('data-kelas'))})}var kuotaTabsEl=$('kuotaKelasTabs');if(kuotaTabsEl){kuotaTabsEl.addEventListener('click',function(e){var tab=e.target.closest('[data-kuota-kelas]');if(tab)selectKuotaKelas(tab.getAttribute('data-kuota-kelas'))})}}
 
-function renderSantriTable(){var t=$('santriTable');if(!t)return;var d=santri;if(kelasAktif!=='__semua__')d=santri.filter(function(s){return s.kelas===kelasAktif});var q=$('searchSantri')?$('searchSantri').value.toLowerCase().trim():'';if(q)d=d.filter(function(s){return s.nama.toLowerCase().indexOf(q)!==-1||s.kelas.toLowerCase().indexOf(q)!==-1});var html='';if(d.length){d.forEach(function(s,i){html+='<tr><td>'+(i+1)+'</td>';html+='<td class="wrap"><a href="#" onclick="showRiwayatSantri('+s.id+');return false;" style="color:var(--blue-dark);font-weight:600;">'+escapeHtml(s.nama)+'</a></td>';html+='<td>'+escapeHtml(s.kelas)+'</td><td>'+(escapeHtml(s.kontak)||'-')+'</td>';if(isAdmin())html+='<td><button class="btn btn-sm btn-info" onclick="showRiwayatSantri('+s.id+')" title="Riwayat"><i class="fa-solid fa-history"></i></button> <button class="btn btn-sm btn-danger" onclick="deleteSantri('+s.id+')"><i class="fa-solid fa-trash"></i></button></td>';else html+='<td><button class="btn btn-sm btn-info" onclick="showRiwayatSantri('+s.id+')"><i class="fa-solid fa-history"></i></button></td>';html+='</tr>'})}else html='<tr><td colspan="5" class="empty">Tidak ada data santri.</td></tr>';t.innerHTML=html}
+function renderSantriTable(){var t=$('santriTable');if(!t)return;var d=santri;if(kelasAktif!=='__semua__')d=santri.filter(function(s){return s.kelas===kelasAktif});var q=$('searchSantri')?$('searchSantri').value.toLowerCase().trim():'';if(q)d=d.filter(function(s){return s.nama.toLowerCase().indexOf(q)!==-1||s.kelas.toLowerCase().indexOf(q)!==-1});var html='';if(d.length){d.forEach(function(s,i){html+='<tr><td>'+(i+1)+'</td>';html+='<td class="wrap"><a href="#" onclick="showRiwayatSantri('+s.id+');return false;" style="color:var(--blue-dark);font-weight:600;">'+escapeHtml(s.nama)+'</a></td>';html+='<td>'+escapeHtml(s.kelas)+'</td><td>'+(escapeHtml(s.kontak)||'-')+'</td>';if(isAdmin())html+='<td><button class="btn btn-sm btn-info" onclick="showRiwayatSantri('+s.id+')" title="Riwayat"><i class="fa-solid fa-history"></i></button> <button class="btn btn-sm btn-warning" onclick="editSantri('+s.id+')" title="Edit data santri"><i class="fa-solid fa-user-pen"></i></button> <button class="btn btn-sm btn-danger" onclick="deleteSantri('+s.id+')"><i class="fa-solid fa-trash"></i></button></td>';else html+='<td><button class="btn btn-sm btn-info" onclick="showRiwayatSantri('+s.id+')"><i class="fa-solid fa-history"></i></button></td>';html+='</tr>'})}else html='<tr><td colspan="5" class="empty">Tidak ada data santri.</td></tr>';t.innerHTML=html}
 
 function renderTahunAjaranForm(){var cfg=getTahunAjaranStart();var parts=cfg.split('-');var mm=parts[0],dd=parts[1];var tahunIni=new Date().getFullYear();var isoVal=tahunIni+'-'+mm+'-'+dd;var inp=$('taStartDate');if(inp&&document.activeElement!==inp)inp.value=isoVal;var start=getPeriodeStart();var end=getPeriodeEnd();var info=$('taInfoPeriode');if(info)info.textContent=formatDateID(start)+'  →  '+formatDateID(end)}
 
@@ -543,7 +1117,7 @@ function renderBekuTable(){var t=$('bekuTable');if(!t)return;var today=todayStr(
 
 function aksiIzinHTML(i){if(!isAdmin())return'<span class="badge-viewonly"><i class="fa-solid fa-eye"></i> Lihat</span>';var html='';if(i.status==='Belum Kembali')html+='<button class="btn btn-sm btn-success" onclick="markKembali('+i.id+')" title="Tandai Kembali"><i class="fa-solid fa-check"></i></button>';html+='<button class="btn btn-sm btn-info" onclick="showKartuIzin('+i.id+')" title="Kartu Izin" style="margin-left:4px;"><i class="fa-solid fa-id-card"></i></button>';html+='<button class="btn btn-sm btn-danger" onclick="deleteIzin('+i.id+')" style="margin-left:4px;"><i class="fa-solid fa-trash"></i></button>';return html}
 
-function renderAll(){syncPembekuanExpired();updateNamaSelect();updateKelasSelect();updateBekuNamaSelect();var totalSantri=santri.length;var belumKembaliCount=izin.filter(function(i){return i.status==='Belum Kembali'}).length;var sudahKembaliCount=izin.filter(function(i){return i.status==='Sudah Kembali'}).length;var masihDiPondok=Math.max(0,totalSantri-belumKembaliCount);var totalPulang=izin.length;var pelValid=pelanggaran.filter(function(p){return(p.status||'verified')!=='rejected'});var today=todayStr();var countTerlambat=izin.filter(function(i){return i.status==='Belum Kembali'&&i.batasKembali&&i.batasKembali<today}).length;if($('statPondok'))$('statPondok').textContent=masihDiPondok;if($('statTotalSantri'))$('statTotalSantri').textContent=totalSantri;if($('statPulang'))$('statPulang').textContent=totalPulang;if($('statTotalSantri2'))$('statTotalSantri2').textContent=totalSantri;if($('statNormal'))$('statNormal').textContent=izin.filter(function(i){return i.jenis==='Normal'}).length;if($('statDarurat'))$('statDarurat').textContent=izin.filter(function(i){return i.jenis==='Darurat'}).length;if($('statBelum'))$('statBelum').textContent=belumKembaliCount;if($('statSudah'))$('statSudah').textContent=sudahKembaliCount;if($('statTerlambat'))$('statTerlambat').textContent=countTerlambat;if($('statPelanggaran'))$('statPelanggaran').textContent=pelValid.length;var recent=izin.slice().sort(function(a,b){return b.id-a.id}).slice(0,5);var recentHtml='';if(recent.length){recent.forEach(function(i){recentHtml+='<tr><td>'+escapeHtml(i.tanggal)+'</td><td class="wrap">'+escapeHtml(i.nama)+'</td><td>'+escapeHtml(i.kelas)+'</td><td><span class="badge badge-'+i.jenis.toLowerCase()+'">'+escapeHtml(i.jenis)+'</span></td><td><span class="badge badge-'+(i.status==='Sudah Kembali'?'sudah':'belum')+'">'+escapeHtml(i.status)+'</span></td></tr>'})}else recentHtml='<tr><td colspan="5" class="empty">Belum ada data</td></tr>';if($('recentTable'))$('recentTable').innerHTML=recentHtml;var filtered=getFilteredIzin();var normal=filtered.filter(function(i){return i.jenis==='Normal'});var normalHtml='';if(normal.length){normal.forEach(function(i){var checked=izinSelectedIds[i.id]?'checked':'';normalHtml+='<tr>';normalHtml+='<td class="td-check"><input type="checkbox" class="chk-pel chk-izin" data-id="'+i.id+'" '+checked+' onclick="toggleCheckIzin('+i.id+', this.checked)"></td>';normalHtml+='<td>'+escapeHtml(i.tanggal)+'</td><td class="wrap">'+escapeHtml(i.nama)+'</td><td>'+escapeHtml(i.kelas)+'</td><td class="wrap">'+(escapeHtml(i.penjemput)||'-')+'</td><td class="wrap">'+escapeHtml(i.alasan)+'</td><td>'+getBatasBadge(i.batasKembali,i.status)+'</td><td><span class="badge badge-'+(i.status==='Sudah Kembali'?'sudah':'belum')+'">'+escapeHtml(i.status)+'</span></td><td>'+aksiIzinHTML(i)+'</td></tr>'})}else normalHtml='<tr><td colspan="9" class="empty">Belum ada data</td></tr>';if($('normalTable'))$('normalTable').innerHTML=normalHtml;var darurat=filtered.filter(function(i){return i.jenis==='Darurat'});var daruratHtml='';if(darurat.length){darurat.forEach(function(i){var checked=izinSelectedIds[i.id]?'checked':'';daruratHtml+='<tr>';daruratHtml+='<td class="td-check"><input type="checkbox" class="chk-pel chk-izin" data-id="'+i.id+'" '+checked+' onclick="toggleCheckIzin('+i.id+', this.checked)"></td>';daruratHtml+='<td>'+escapeHtml(i.tanggal)+'</td><td class="wrap">'+escapeHtml(i.nama)+'</td><td>'+escapeHtml(i.kelas)+'</td><td class="wrap">'+(escapeHtml(i.penjemput)||'-')+'</td><td class="wrap">'+escapeHtml(i.alasan)+'</td><td>'+getBatasBadge(i.batasKembali,i.status)+'</td><td><span class="badge badge-'+(i.status==='Sudah Kembali'?'sudah':'belum')+'">'+escapeHtml(i.status)+'</span></td><td>'+aksiIzinHTML(i)+'</td></tr>'})}else daruratHtml='<tr><td colspan="9" class="empty">Belum ada data</td></tr>';if($('daruratTable'))$('daruratTable').innerHTML=daruratHtml;var belum=filtered.filter(function(i){return i.status==='Belum Kembali'});var belumHtml='';if(belum.length){belum.forEach(function(i){var aksi=isAdmin()?'<button class="btn btn-sm btn-success" onclick="markKembali('+i.id+')"><i class="fa-solid fa-check"></i> Kembali</button> <button class="btn btn-sm btn-info" onclick="showKartuIzin('+i.id+')"><i class="fa-solid fa-id-card"></i></button>':'<span class="badge-viewonly"><i class="fa-solid fa-eye"></i> Lihat</span>';belumHtml+='<tr><td>'+escapeHtml(i.tanggal)+'</td><td class="wrap">'+escapeHtml(i.nama)+'</td><td>'+escapeHtml(i.kelas)+'</td><td class="wrap">'+(escapeHtml(i.penjemput)||'-')+'</td><td><span class="badge badge-'+i.jenis.toLowerCase()+'">'+escapeHtml(i.jenis)+'</span></td><td>'+getBatasBadge(i.batasKembali,i.status)+'</td><td>'+aksi+'</td></tr>'})}else belumHtml='<tr><td colspan="7" class="empty">Tidak ada santri belum kembali</td></tr>';if($('belumTable'))$('belumTable').innerHTML=belumHtml;var sudah=filtered.filter(function(i){return i.status==='Sudah Kembali'});var sudahHtml='';if(sudah.length){sudah.forEach(function(i){sudahHtml+='<tr><td>'+escapeHtml(i.tanggal)+'</td><td class="wrap">'+escapeHtml(i.nama)+'</td><td>'+escapeHtml(i.kelas)+'</td><td>'+escapeHtml(i.tglKembali||'-')+'</td><td>'+getBatasBadge(i.batasKembali,i.status)+'</td><td><span class="badge badge-'+i.jenis.toLowerCase()+'">'+escapeHtml(i.jenis)+'</span></td></tr>'})}else sudahHtml='<tr><td colspan="6" class="empty">Belum ada data</td></tr>';if($('sudahTable'))$('sudahTable').innerHTML=sudahHtml;renderPelFilterTabs();renderPelanggaranTable();renderKelasTabs();renderKuotaKelasTabs();renderKuotaTable();renderSantriTable();renderBekuTable();renderCalendar();renderChartBulanan();renderLog();updateBulkIzinButton()}
+function renderAll(){syncPembekuanExpired();updateNamaSelect();updateKelasSelect();updateBekuNamaSelect();var totalSantri=santri.length;var belumKembaliCount=izin.filter(function(i){return i.status==='Belum Kembali'}).length;var sudahKembaliCount=izin.filter(function(i){return i.status==='Sudah Kembali'}).length;var masihDiPondok=Math.max(0,totalSantri-belumKembaliCount);var totalPulang=izin.length;var pelValid=pelanggaran.filter(function(p){return(p.status||'verified')!=='rejected'});var today=todayStr();var countTerlambat=izin.filter(function(i){return i.status==='Belum Kembali'&&i.batasKembali&&i.batasKembali<today}).length;if($('statPondok'))$('statPondok').textContent=masihDiPondok;if($('statTotalSantri'))$('statTotalSantri').textContent=totalSantri;if($('statPulang'))$('statPulang').textContent=totalPulang;if($('statTotalSantri2'))$('statTotalSantri2').textContent=totalSantri;if($('statNormal'))$('statNormal').textContent=izin.filter(function(i){return i.jenis==='Normal'}).length;if($('statDarurat'))$('statDarurat').textContent=izin.filter(function(i){return i.jenis==='Darurat'}).length;if($('statBelum'))$('statBelum').textContent=belumKembaliCount;if($('statSudah'))$('statSudah').textContent=sudahKembaliCount;if($('statTerlambat'))$('statTerlambat').textContent=countTerlambat;if($('statPelanggaran'))$('statPelanggaran').textContent=pelValid.length;var recent=izin.slice().sort(function(a,b){return b.id-a.id}).slice(0,5);var recentHtml='';if(recent.length){recent.forEach(function(i){recentHtml+='<tr><td>'+escapeHtml(i.tanggal)+'</td><td class="wrap">'+escapeHtml(i.nama)+'</td><td>'+escapeHtml(i.kelas)+'</td><td><span class="badge badge-'+i.jenis.toLowerCase()+'">'+escapeHtml(i.jenis)+'</span></td><td><span class="badge badge-'+(i.status==='Sudah Kembali'?'sudah':'belum')+'">'+escapeHtml(i.status)+'</span></td></tr>'})}else recentHtml='<tr><td colspan="5" class="empty">Belum ada data</td></tr>';if($('recentTable'))$('recentTable').innerHTML=recentHtml;var filtered=getFilteredIzin();var normal=filtered.filter(function(i){return i.jenis==='Normal'});var normalHtml='';if(normal.length){normal.forEach(function(i){var checked=izinSelectedIds[i.id]?'checked':'';normalHtml+='<tr>';normalHtml+='<td class="td-check"><input type="checkbox" class="chk-pel chk-izin" data-id="'+i.id+'" '+checked+' onclick="toggleCheckIzin('+i.id+', this.checked)"></td>';normalHtml+='<td>'+escapeHtml(i.tanggal)+'</td><td class="wrap">'+escapeHtml(i.nama)+'</td><td>'+escapeHtml(i.kelas)+'</td><td class="wrap">'+escapeHtml(i.waliKelas||getWaliKelas(i.kelas)||'-')+'</td><td class="wrap">'+(escapeHtml(i.penjemput)||'-')+'</td><td class="wrap">'+escapeHtml(i.alasan)+'</td><td>'+getBatasBadge(i.batasKembali,i.status)+'</td><td><span class="badge badge-'+(i.status==='Sudah Kembali'?'sudah':'belum')+'">'+escapeHtml(i.status)+'</span></td><td>'+aksiIzinHTML(i)+'</td></tr>'})}else normalHtml='<tr><td colspan="10" class="empty">Belum ada data</td></tr>';if($('normalTable'))$('normalTable').innerHTML=normalHtml;var darurat=filtered.filter(function(i){return i.jenis==='Darurat'});var daruratHtml='';if(darurat.length){darurat.forEach(function(i){var checked=izinSelectedIds[i.id]?'checked':'';daruratHtml+='<tr>';daruratHtml+='<td class="td-check"><input type="checkbox" class="chk-pel chk-izin" data-id="'+i.id+'" '+checked+' onclick="toggleCheckIzin('+i.id+', this.checked)"></td>';daruratHtml+='<td>'+escapeHtml(i.tanggal)+'</td><td class="wrap">'+escapeHtml(i.nama)+'</td><td>'+escapeHtml(i.kelas)+'</td><td class="wrap">'+escapeHtml(i.waliKelas||getWaliKelas(i.kelas)||'-')+'</td><td class="wrap">'+(escapeHtml(i.penjemput)||'-')+'</td><td class="wrap">'+escapeHtml(i.alasan)+'</td><td>'+getBatasBadge(i.batasKembali,i.status)+'</td><td><span class="badge badge-'+(i.status==='Sudah Kembali'?'sudah':'belum')+'">'+escapeHtml(i.status)+'</span></td><td>'+aksiIzinHTML(i)+'</td></tr>'})}else daruratHtml='<tr><td colspan="10" class="empty">Belum ada data</td></tr>';if($('daruratTable'))$('daruratTable').innerHTML=daruratHtml;var belum=filtered.filter(function(i){return i.status==='Belum Kembali'});var belumHtml='';if(belum.length){belum.forEach(function(i){var aksi=isAdmin()?'<button class="btn btn-sm btn-success" onclick="markKembali('+i.id+')"><i class="fa-solid fa-check"></i> Kembali</button> <button class="btn btn-sm btn-info" onclick="showKartuIzin('+i.id+')"><i class="fa-solid fa-id-card"></i></button>':'<span class="badge-viewonly"><i class="fa-solid fa-eye"></i> Lihat</span>';belumHtml+='<tr><td>'+escapeHtml(i.tanggal)+'</td><td class="wrap">'+escapeHtml(i.nama)+'</td><td>'+escapeHtml(i.kelas)+'</td><td class="wrap">'+(escapeHtml(i.penjemput)||'-')+'</td><td><span class="badge badge-'+i.jenis.toLowerCase()+'">'+escapeHtml(i.jenis)+'</span></td><td>'+getBatasBadge(i.batasKembali,i.status)+'</td><td>'+aksi+'</td></tr>'})}else belumHtml='<tr><td colspan="7" class="empty">Tidak ada santri belum kembali</td></tr>';if($('belumTable'))$('belumTable').innerHTML=belumHtml;var sudah=filtered.filter(function(i){return i.status==='Sudah Kembali'});var sudahHtml='';if(sudah.length){sudah.forEach(function(i){sudahHtml+='<tr><td>'+escapeHtml(i.tanggal)+'</td><td class="wrap">'+escapeHtml(i.nama)+'</td><td>'+escapeHtml(i.kelas)+'</td><td>'+escapeHtml(i.tglKembali||'-')+'</td><td>'+getBatasBadge(i.batasKembali,i.status)+'</td><td><span class="badge badge-'+i.jenis.toLowerCase()+'">'+escapeHtml(i.jenis)+'</span></td></tr>'})}else sudahHtml='<tr><td colspan="6" class="empty">Belum ada data</td></tr>';if($('sudahTable'))$('sudahTable').innerHTML=sudahHtml;renderPelFilterTabs();renderPelanggaranTable();renderKelasTabs();renderWaliTable();renderKuotaKelasTabs();renderKuotaTable();renderSantriTable();renderBekuTable();renderCalendar();renderChartBulanan();renderLog();updateBulkIzinButton()}
 
 function renderChartBulanan(){var c=$('chartBulanan');if(!c)return;var tahun=new Date().getFullYear();var bulan=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];var data=[0,0,0,0,0,0,0,0,0,0,0,0];izin.forEach(function(i){if(!i.tanggal)return;var p=i.tanggal.split('-');if(parseInt(p[0])===tahun)data[parseInt(p[1])-1]++});var max=Math.max.apply(null,data.concat([1]));var html='';data.forEach(function(v,i){var h=(v/max)*120;html+='<div class="chart-bar-wrap">';html+='<div class="chart-bar-track"><div class="chart-bar" style="height:'+h+'px;" title="'+bulan[i]+': '+v+'"></div></div>';html+='<div class="chart-bar-label">'+bulan[i]+'</div>';html+='<div class="chart-bar-value">'+v+'</div>';html+='</div>'});c.innerHTML=html}
 
@@ -560,8 +1134,8 @@ function showCalDetail(ds){var ev=izin.filter(function(i){return i.tanggal===ds}
 function showRiwayatSantri(santriId){var s=santri.find(function(x){return x.id===santriId});if(!s){showToast('Santri tidak ditemukan','error');return}var riwayatIzin=izin.filter(function(i){return i.nama===s.nama&&i.kelas===s.kelas});var riwayatPel=pelanggaran.filter(function(p){if(p.santriId===s.id)return true;return p.nama===s.nama&&p.kelas===s.kelas});var riwayatBeku=beku.filter(function(b){if(b.santriId===s.id)return true;return b.nama===s.nama&&b.kelas===s.kelas});$('riwayatNama').textContent=s.nama;$('riwayatKelas').textContent=s.kelas;$('riwayatTotalIzin').textContent=riwayatIzin.length;$('riwayatTotalPel').textContent=riwayatPel.length;$('riwayatTotalBeku').textContent=riwayatBeku.length;var htmlIzin='';if(riwayatIzin.length){riwayatIzin.forEach(function(i){htmlIzin+='<tr><td>'+escapeHtml(i.tanggal)+'</td><td><span class="badge badge-'+i.jenis.toLowerCase()+'">'+escapeHtml(i.jenis)+'</span></td><td>'+escapeHtml(i.alasan||'-')+'</td><td>'+formatDateID(i.batasKembali)+'</td><td><span class="badge badge-'+(i.status==='Sudah Kembali'?'sudah':'belum')+'">'+escapeHtml(i.status)+'</span></td></tr>'})}else htmlIzin='<tr><td colspan="5" class="empty">Belum ada izin</td></tr>';$('riwayatIzinTable').innerHTML=htmlIzin;var htmlPel='';if(riwayatPel.length){riwayatPel.forEach(function(p){var st=p.status||'verified';htmlPel+='<tr><td>'+escapeHtml(p.tanggal)+'</td><td>'+escapeHtml(p.jenis)+'</td><td>'+escapeHtml(p.ket||'-')+'</td><td><span class="badge-status-pel '+st+'">'+st+'</span></td></tr>'})}else htmlPel='<tr><td colspan="4" class="empty">Belum ada pelanggaran</td></tr>';$('riwayatPelTable').innerHTML=htmlPel;var htmlBeku='';if(riwayatBeku.length){riwayatBeku.forEach(function(b){var aktif=b.status&&(!b.berakhir||b.berakhir==='selamanya'||b.berakhir>=todayStr());htmlBeku+='<tr><td>'+formatDateID(b.mulai)+'</td><td>'+(b.berakhir==='selamanya'?'Selamanya':formatDateID(b.berakhir))+'</td><td>'+escapeHtml(b.alasan||'-')+'</td><td><span class="badge badge-'+(aktif?'beku':'sudah')+'">'+(aktif?'Aktif':'Selesai')+'</span></td></tr>'})}else htmlBeku='<tr><td colspan="4" class="empty">Belum ada pembekuan</td></tr>';$('riwayatBekuTable').innerHTML=htmlBeku;openModal('modalRiwayatSantri')}
 
 /* BACKUP & RESTORE */
-function backupData(){if(!isAdmin()){showToast('Akses ditolak','error');return}var payload={version:2,timestamp:new Date().toISOString(),santri:santri,izin:izin,beku:beku,pelanggaran:pelanggaran,daftarKelas:daftarKelas,kuotaSantri:kuotaSantri,defaultKuota:defaultKuota,tahunAjaran:getTahunAjaranStart()};var json=JSON.stringify(payload,null,2);var blob=new Blob([json],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='risalah-backup-'+todayStr()+'.json';a.click();URL.revokeObjectURL(url);logAktivitas('Backup Data','oleh '+currentUserName);showToast('Backup berhasil diunduh')}
-function handleRestore(e){if(!isAdmin()){showToast('Akses ditolak','error');return}var f=e.target.files[0];if(!f)return;if(f.size>50*1024*1024){showToast('File maksimal 50MB','error');return}var r=new FileReader();r.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(!data.version||!data.santri){showToast('File backup tidak valid','error');return}if(!confirm('Restore akan MENIMPA semua data:\n\nSantri: '+(data.santri||[]).length+'\nIzin: '+(data.izin||[]).length+'\nPelanggaran: '+(data.pelanggaran||[]).length+'\nPembekuan: '+(data.beku||[]).length+'\n\nLanjutkan?'))return;DB.set('gh_santri',data.santri||[]);DB.set('gh_izin',data.izin||[]);DB.set('gh_beku',data.beku||[]);DB.set('gh_pelanggaran',data.pelanggaran||[]);DB.set('gh_kelas',data.daftarKelas||[]);DB.set('gh_kuota_santri',data.kuotaSantri||{});DB.set('gh_default_kuota',data.defaultKuota||DEFAULT_KUOTA);DB.set('gh_tahun_ajaran_start',data.tahunAjaran||DEFAULT_TAHUN);logAktivitas('Restore Data','oleh '+currentUserName);showToast('Data berhasil di-restore. Reload...');setTimeout(function(){location.reload()},1200)}catch(err){showToast('Gagal baca file: '+err.message,'error')}};r.readAsText(f)}
+function backupData(){if(!isAdmin()){showToast('Akses ditolak','error');return}var payload={version:2,timestamp:new Date().toISOString(),santri:santri,izin:izin,beku:beku,pelanggaran:pelanggaran,daftarKelas:daftarKelas,kuotaSantri:kuotaSantri,defaultKuota:defaultKuota,tahunAjaran:getTahunAjaranStart(),waliKelas:waliKelas};var json=JSON.stringify(payload,null,2);var blob=new Blob([json],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='risalah-backup-'+todayStr()+'.json';a.click();URL.revokeObjectURL(url);logAktivitas('Backup Data','oleh '+currentUserName);showToast('Backup berhasil diunduh')}
+function handleRestore(e){if(!isAdmin()){showToast('Akses ditolak','error');return}var f=e.target.files[0];if(!f)return;if(f.size>50*1024*1024){showToast('File maksimal 50MB','error');return}var r=new FileReader();r.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(!data.version||!data.santri){showToast('File backup tidak valid','error');return}if(!confirm('Restore akan MENIMPA semua data:\n\nSantri: '+(data.santri||[]).length+'\nIzin: '+(data.izin||[]).length+'\nPelanggaran: '+(data.pelanggaran||[]).length+'\nPembekuan: '+(data.beku||[]).length+'\n\nLanjutkan?'))return;DB.set('gh_santri',data.santri||[]);DB.set('gh_izin',data.izin||[]);DB.set('gh_beku',data.beku||[]);DB.set('gh_pelanggaran',data.pelanggaran||[]);DB.set('gh_kelas',data.daftarKelas||[]);DB.set('gh_kuota_santri',data.kuotaSantri||{});DB.set('gh_default_kuota',data.defaultKuota||DEFAULT_KUOTA);DB.set('gh_tahun_ajaran_start',data.tahunAjaran||DEFAULT_TAHUN);DB.set('gh_wali_kelas',data.waliKelas||waliKelas);logAktivitas('Restore Data','oleh '+currentUserName);showToast('Data berhasil di-restore. Reload...');setTimeout(function(){location.reload()},1200)}catch(err){showToast('Gagal baca file: '+err.message,'error')}};r.readAsText(f)}
 
 /* RESET PASSWORD */
 function resetPasswordAdmin(){if(!isAdmin()){showToast('Akses ditolak','error');return}if(!confirm('Reset password ADMIN ke default? Anda akan logout dan login ulang.'))return;DB.set('gh_admin_pass',null);logAktivitas('Reset Password Admin','oleh '+currentUserName);showToast('Password admin direset. Logout...');setTimeout(function(){logout()},1000)}
@@ -570,9 +1144,9 @@ function resetPasswordUser(){if(!isAdmin()){showToast('Akses ditolak','error');r
 /* EXPORT */
 function csvEscape(v){var s=v===null||v===undefined?'':String(v);return'"'+s.replace(/"/g,'""')+'"'}
 function exportCSV(){if(!izin.length){showToast('Tidak ada data','error');return}var h=['Tanggal','Nama','Kelas','Jenis','Penjemput','Alasan','Batas Kembali','Status','Tgl Kembali'];var r=izin.map(function(i){return[i.tanggal,i.nama,i.kelas,i.jenis,i.penjemput||'',i.alasan,i.batasKembali||'-',i.status,i.tglKembali||'-']});var csv=[h].concat(r).map(function(x){return x.map(csvEscape).join(',')}).join('\n');var b=new Blob([csv],{type:'text/csv;charset=utf-8;'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='izin-'+Date.now()+'.csv';a.click();URL.revokeObjectURL(u);showToast('CSV diunduh')}
-function exportPDF(){if(!izin.length){showToast('Tidak ada data','error');return}if(!window.jspdf){showToast('Library PDF belum termuat','error');return}var jsPDF=window.jspdf.jsPDF;var doc=new jsPDF({orientation:'landscape'});doc.setFontSize(16);doc.text('Laporan Izin Pulang',14,15);doc.setFontSize(10);doc.text('Dicetak: '+new Date().toLocaleString('id-ID'),14,22);var r=izin.map(function(i){return[i.tanggal,i.nama,i.kelas,i.jenis,i.penjemput||'-',i.alasan,i.batasKembali||'-',i.status]});doc.autoTable({startY:28,head:[['Tanggal','Nama','Kelas','Jenis','Penjemput','Alasan','Batas Kembali','Status']],body:r,theme:'striped',headStyles:{fillColor:[2,132,199]},styles:{fontSize:8}});doc.save('izin-'+Date.now()+'.pdf');showToast('PDF diunduh')}
+function exportPDF(){if(!izin.length){showToast('Tidak ada data','error');return}if(!window.jspdf){showToast('Library PDF belum termuat','error');return}var jsPDF=window.jspdf.jsPDF;var doc=new jsPDF({orientation:'landscape'});doc.setFontSize(16);doc.text('Laporan Izin Pulang',14,15);doc.setFontSize(10);doc.text('Dicetak: '+new Date().toLocaleString('id-ID'),14,22);var r=izin.map(function(i){return[i.tanggal,i.nama,i.kelas,(i.waliKelas||getWaliKelas(i.kelas)||'-'),i.jenis,i.penjemput||'-',i.alasan,i.batasKembali||'-',i.status]});doc.autoTable({startY:28,head:[['Tanggal','Nama','Kelas','Jenis','Penjemput','Alasan','Batas Kembali','Status']],body:r,theme:'striped',headStyles:{fillColor:[2,132,199]},styles:{fontSize:8}});doc.save('izin-'+Date.now()+'.pdf');showToast('PDF diunduh')}
 function exportExcel(filename,sheetName,headers,rows){if(typeof XLSX==='undefined'){showToast('Library Excel belum termuat','error');return}var data=[headers].concat(rows);var ws=XLSX.utils.aoa_to_sheet(data);var colWidths=headers.map(function(h,i){var max=String(h).length;rows.forEach(function(r){var val=r[i]==null?'':String(r[i]);if(val.length>max)max=val.length});return{wch:Math.min(Math.max(max+3,12),45)}});ws['!cols']=colWidths;var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,sheetName.slice(0,31));XLSX.writeFile(wb,filename+'_'+todayStr()+'.xlsx');showToast('File Excel berhasil diunduh')}
-function exportSection(section){var restrictedForUser=['ajukan','pelanggaran','pembekuan','santri','password','backup','log'];if(!isAdmin()&&restrictedForUser.indexOf(section)!==-1){showToast('Akses ditolak','error');return}var d;switch(section){case'dashboard':if(!izin.length){showToast('Tidak ada data izin','error');return}exportExcel('dashboard_izin','Dashboard Izin',['Tanggal','Nama','Kelas','Jenis','Penjemput','Alasan','Batas Kembali','Keterangan','Status','Tgl Kembali'],izin.map(function(i){return[i.tanggal,i.nama,i.kelas,i.jenis,i.penjemput||'-',i.alasan||'-',i.batasKembali||'-',i.keterangan||'-',i.status,i.tglKembali||'-']}));break;case'normal':d=izin.filter(function(i){return i.jenis==='Normal'});if(!d.length){showToast('Tidak ada data izin normal','error');return}exportExcel('izin_normal','Izin Normal',['Tanggal','Nama','Kelas','Penjemput','Alasan','Batas Kembali','Keterangan','Status','Tgl Kembali'],d.map(function(i){return[i.tanggal,i.nama,i.kelas,i.penjemput||'-',i.alasan||'-',i.batasKembali||'-',i.keterangan||'-',i.status,i.tglKembali||'-']}));break;case'darurat':d=izin.filter(function(i){return i.jenis==='Darurat'});if(!d.length){showToast('Tidak ada data izin darurat','error');return}exportExcel('izin_darurat','Izin Darurat',['Tanggal','Nama','Kelas','Penjemput','Alasan','Batas Kembali','Keterangan','Status','Tgl Kembali'],d.map(function(i){return[i.tanggal,i.nama,i.kelas,i.penjemput||'-',i.alasan||'-',i.batasKembali||'-',i.keterangan||'-',i.status,i.tglKembali||'-']}));break;case'belum':d=izin.filter(function(i){return i.status==='Belum Kembali'});if(!d.length){showToast('Tidak ada santri belum kembali','error');return}exportExcel('belum_kembali','Belum Kembali',['Tanggal','Nama','Kelas','Penjemput','Jenis','Alasan','Batas Kembali','Keterangan'],d.map(function(i){return[i.tanggal,i.nama,i.kelas,i.penjemput||'-',i.jenis,i.alasan||'-',i.batasKembali||'-',i.keterangan||'-']}));break;case'sudah':d=izin.filter(function(i){return i.status==='Sudah Kembali'});if(!d.length){showToast('Tidak ada data sudah kembali','error');return}exportExcel('sudah_kembali','Sudah Kembali',['Tanggal Izin','Nama','Kelas','Tgl Kembali','Batas Kembali','Jenis','Penjemput','Alasan'],d.map(function(i){return[i.tanggal,i.nama,i.kelas,i.tglKembali||'-',i.batasKembali||'-',i.jenis,i.penjemput||'-',i.alasan||'-']}));break;case'kalender':var y=calDate.getFullYear(),m=calDate.getMonth();var prefix=y+'-'+pad2(m+1);d=izin.filter(function(i){return i.tanggal&&i.tanggal.indexOf(prefix)===0});if(!d.length){showToast('Tidak ada izin di bulan ini','error');return}var months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];exportExcel('kalender_izin_'+prefix,'Kalender '+months[m]+' '+y,['Tanggal','Nama','Kelas','Jenis','Penjemput','Alasan','Batas Kembali','Keterangan','Status'],d.map(function(i){return[i.tanggal,i.nama,i.kelas,i.jenis,i.penjemput||'-',i.alasan||'-',i.batasKembali||'-',i.keterangan||'-',i.status]}));break;case'pelanggaran':if(!pelanggaran.length){showToast('Tidak ada data pelanggaran','error');return}exportExcel('catatan_pelanggaran','Pelanggaran',['Tanggal','Nama','Kelas','Jenis','Keterangan','Sumber','Status','Diverifikasi Oleh','Waktu Verifikasi'],pelanggaran.map(function(p){var st=p.status||'verified';var label=st==='pending'?'Pending':st==='verified'?'Verified':'Ditolak';return[p.tanggal,p.nama,p.kelas,p.jenis,p.ket||'-',p.sumber||'Manual',label,p.verifiedBy||p.rejectedBy||'-',formatDateTimeID(p.verifiedAt||p.rejectedAt)||'-']}));break;case'kuota':if(!santri.length){showToast('Tidak ada data santri','error');return}var listKuota=santri;if(kuotaKelasFilter!=='__semua__')listKuota=santri.filter(function(s){return s.kelas===kuotaKelasFilter});exportExcel('kuota_izin_santri','Kuota Izin Santri',['No','Nama','Kelas','Jatah Kuota (hari)','Terpakai (hari)','Sisa (hari)','Status'],listKuota.map(function(s,i){var jatah=kuotaSantri[s.id]!==undefined?kuotaSantri[s.id]:defaultKuota;var terpakai=getTotalHariIzinSantri(s.nama,s.kelas);var sisa=Math.max(0,jatah-terpakai);var status=getStatusKuota(jatah,terpakai);var label='Aman';if(status==='bahaya')label='Habis';else if(status==='warning')label='Menipis';return[i+1,s.nama,s.kelas,jatah,terpakai,sisa,label]}));break;case'pembekuan':if(!beku.length){showToast('Tidak ada data pembekuan','error');return}exportExcel('pembekuan_tazir','Pembekuan Tazir',['No','Nama','Kelas','Sumber','Alasan','Durasi','Mulai','Berakhir','Status'],beku.map(function(b,i){var today=todayStr();var aktif=b.status&&(!b.berakhir||b.berakhir==='selamanya'||b.berakhir>=today);return[i+1,b.nama,b.kelas,b.sumber||'-',b.alasan||'-',b.durasi===0?'Selamanya':b.durasi+' hari',b.mulai||'-',b.berakhir||'-',aktif?'Aktif':'Selesai']}));break;case'santri':d=kelasAktif==='__semua__'?santri:santri.filter(function(s){return s.kelas===kelasAktif});if(!d.length){showToast('Tidak ada data santri','error');return}exportExcel('data_santri_'+(kelasAktif==='__semua__'?'semua':kelasAktif.replace(/\s+/g,'_')),kelasAktif==='__semua__'?'Semua Santri':'Santri '+kelasAktif,['No','Nama','Kelas','Kontak Wali'],d.map(function(s,i){return[i+1,s.nama,s.kelas,s.kontak||'-']}));break;default:showToast('Tab tidak dikenal','error')}}
+function exportSection(section){var restrictedForUser=['ajukan','pelanggaran','pembekuan','santri','password','backup','log'];if(!isAdmin()&&restrictedForUser.indexOf(section)!==-1){showToast('Akses ditolak','error');return}var d;switch(section){case'dashboard':if(!izin.length){showToast('Tidak ada data izin','error');return}exportExcel('dashboard_izin','Dashboard Izin',['Tanggal','Nama','Kelas','Wali Kelas','Jenis','Penjemput','Alasan','Batas Kembali','Keterangan','Status','Tgl Kembali'],izin.map(function(i){return[i.tanggal,i.nama,i.kelas,(i.waliKelas||getWaliKelas(i.kelas)||'-'),i.jenis,i.penjemput||'-',i.alasan||'-',i.batasKembali||'-',i.keterangan||'-',i.status,i.tglKembali||'-']}));break;case'normal':d=izin.filter(function(i){return i.jenis==='Normal'});if(!d.length){showToast('Tidak ada data izin normal','error');return}exportExcel('izin_normal','Izin Normal',['Tanggal','Nama','Kelas','Wali Kelas','Penjemput','Alasan','Batas Kembali','Keterangan','Status','Tgl Kembali'],d.map(function(i){return[i.tanggal,i.nama,i.kelas,(i.waliKelas||getWaliKelas(i.kelas)||'-'),i.penjemput||'-',i.alasan||'-',i.batasKembali||'-',i.keterangan||'-',i.status,i.tglKembali||'-']}));break;case'darurat':d=izin.filter(function(i){return i.jenis==='Darurat'});if(!d.length){showToast('Tidak ada data izin darurat','error');return}exportExcel('izin_darurat','Izin Darurat',['Tanggal','Nama','Kelas','Wali Kelas','Penjemput','Alasan','Batas Kembali','Keterangan','Status','Tgl Kembali'],d.map(function(i){return[i.tanggal,i.nama,i.kelas,(i.waliKelas||getWaliKelas(i.kelas)||'-'),i.penjemput||'-',i.alasan||'-',i.batasKembali||'-',i.keterangan||'-',i.status,i.tglKembali||'-']}));break;case'belum':d=izin.filter(function(i){return i.status==='Belum Kembali'});if(!d.length){showToast('Tidak ada santri belum kembali','error');return}exportExcel('belum_kembali','Belum Kembali',['Tanggal','Nama','Kelas','Wali Kelas','Penjemput','Jenis','Alasan','Batas Kembali','Keterangan'],d.map(function(i){return[i.tanggal,i.nama,i.kelas,(i.waliKelas||getWaliKelas(i.kelas)||'-'),i.penjemput||'-',i.jenis,i.alasan||'-',i.batasKembali||'-',i.keterangan||'-']}));break;case'sudah':d=izin.filter(function(i){return i.status==='Sudah Kembali'});if(!d.length){showToast('Tidak ada data sudah kembali','error');return}exportExcel('sudah_kembali','Sudah Kembali',['Tanggal Izin','Nama','Kelas','Wali Kelas','Tgl Kembali','Batas Kembali','Jenis','Penjemput','Alasan'],d.map(function(i){return[i.tanggal,i.nama,i.kelas,(i.waliKelas||getWaliKelas(i.kelas)||'-'),i.tglKembali||'-',i.batasKembali||'-',i.jenis,i.penjemput||'-',i.alasan||'-']}));break;case'kalender':var y=calDate.getFullYear(),m=calDate.getMonth();var prefix=y+'-'+pad2(m+1);d=izin.filter(function(i){return i.tanggal&&i.tanggal.indexOf(prefix)===0});if(!d.length){showToast('Tidak ada izin di bulan ini','error');return}var months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];exportExcel('kalender_izin_'+prefix,'Kalender '+months[m]+' '+y,['Tanggal','Nama','Kelas','Wali Kelas','Jenis','Penjemput','Alasan','Batas Kembali','Keterangan','Status'],d.map(function(i){return[i.tanggal,i.nama,i.kelas,(i.waliKelas||getWaliKelas(i.kelas)||'-'),i.jenis,i.penjemput||'-',i.alasan||'-',i.batasKembali||'-',i.keterangan||'-',i.status]}));break;case'pelanggaran':if(!pelanggaran.length){showToast('Tidak ada data pelanggaran','error');return}exportExcel('catatan_pelanggaran','Pelanggaran',['Tanggal','Nama','Kelas','Jenis','Keterangan','Sumber','Status','Diverifikasi Oleh','Waktu Verifikasi'],pelanggaran.map(function(p){var st=p.status||'verified';var label=st==='pending'?'Pending':st==='verified'?'Verified':'Ditolak';return[p.tanggal,p.nama,p.kelas,p.jenis,p.ket||'-',p.sumber||'Manual',label,p.verifiedBy||p.rejectedBy||'-',formatDateTimeID(p.verifiedAt||p.rejectedAt)||'-']}));break;case'kuota':if(!santri.length){showToast('Tidak ada data santri','error');return}var listKuota=santri;if(kuotaKelasFilter!=='__semua__')listKuota=santri.filter(function(s){return s.kelas===kuotaKelasFilter});exportExcel('kuota_izin_santri','Kuota Izin Santri',['No','Nama','Kelas','Jatah Kuota (hari)','Terpakai (hari)','Sisa (hari)','Status'],listKuota.map(function(s,i){var jatah=kuotaSantri[s.id]!==undefined?kuotaSantri[s.id]:defaultKuota;var terpakai=getTotalHariIzinSantri(s.nama,s.kelas);var sisa=Math.max(0,jatah-terpakai);var status=getStatusKuota(jatah,terpakai);var label='Aman';if(status==='bahaya')label='Habis';else if(status==='warning')label='Menipis';return[i+1,s.nama,s.kelas,jatah,terpakai,sisa,label]}));break;case'pembekuan':if(!beku.length){showToast('Tidak ada data pembekuan','error');return}exportExcel('pembekuan_tazir','Pembekuan Tazir',['No','Nama','Kelas','Sumber','Alasan','Durasi','Mulai','Berakhir','Status'],beku.map(function(b,i){var today=todayStr();var aktif=b.status&&(!b.berakhir||b.berakhir==='selamanya'||b.berakhir>=today);return[i+1,b.nama,b.kelas,b.sumber||'-',b.alasan||'-',b.durasi===0?'Selamanya':b.durasi+' hari',b.mulai||'-',b.berakhir||'-',aktif?'Aktif':'Selesai']}));break;case'wali':if(!daftarKelas.length){showToast('Tidak ada data kelas','error');return}exportExcel('wali_kelas','Wali Kelas',['No','Kelas','Jumlah Santri','Nama Wali Kelas'],daftarKelas.map(function(k,i){return[i+1,k,santri.filter(function(s){return s.kelas===k}).length,getWaliKelas(k)||'-']}));break;case'santri':d=kelasAktif==='__semua__'?santri:santri.filter(function(s){return s.kelas===kelasAktif});if(!d.length){showToast('Tidak ada data santri','error');return}exportExcel('data_santri_'+(kelasAktif==='__semua__'?'semua':kelasAktif.replace(/\s+/g,'_')),kelasAktif==='__semua__'?'Semua Santri':'Santri '+kelasAktif,['No','Nama','Kelas','Kontak Wali'],d.map(function(s,i){return[i+1,s.nama,s.kelas,s.kontak||'-']}));break;default:showToast('Tab tidak dikenal','error')}}
 
 function initNavigation(){var navItems=document.querySelectorAll('.nav-item[data-section]');navItems.forEach(function(item){item.addEventListener('click',function(){var sectionId=this.dataset.section;if(!isAdmin()&&ADMIN_ONLY.indexOf(sectionId)!==-1){showToast('Akses ditolak. Tab ini hanya untuk admin.','error');return}document.querySelectorAll('.nav-item').forEach(function(i){i.classList.remove('active')});document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});this.classList.add('active');var sec=$(sectionId);if(sec)sec.classList.add('active');if(window.innerWidth<=768){if($('sidebar'))$('sidebar').classList.remove('open');if($('sidebarOverlay'))$('sidebarOverlay').classList.remove('show')}renderAll();setTimeout(scrollActiveNavIntoView,50)})})}
 
