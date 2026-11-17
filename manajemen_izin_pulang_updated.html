@@ -339,6 +339,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="seed-santri.js"></script>
 <script>
 /* KONFIGURASI */
 var ADMIN_PASSWORD='alrisalah1dekade',USER_PASSWORD='19082015',ADMIN_USERNAME='risalahadmin';
@@ -355,14 +356,30 @@ function isAdmin(){return currentUserRole==='admin'}
 
 var DB={get:function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v||d}catch(e){return d}},set:function(k,v){localStorage.setItem(k,JSON.stringify(v))}};
 
-var santri=DB.get('gh_santri',[]);
+var santri=DB.get('gh_santri',(window.SEED_SANTRI||[]).slice());
 var izin=DB.get('gh_izin',[]);
 var beku=DB.get('gh_beku',[]);
 var pelanggaran=DB.get('gh_pelanggaran',[]);
-var daftarKelas=DB.get('gh_kelas',['1 SPM','2 SPM','3 SPM','1 A Wustha','1 B Wustha','1 C Wustha','1 D Wustha','1 E Wustha','2 A','2 B','2 C','2 D','2 E','3 A','3 B','3 C','3 D','3 E']);
+var daftarKelas=DB.get('gh_kelas',(window.SEED_KELAS||['1 SPM','2 SPM','3 SPM','1 A Wustha','1 B Wustha','1 C Wustha','1 D Wustha','1 E Wustha','2 A','2 B','2 C','2 D','2 E','3 A','3 B','3 C','3 D','3 E']));
 var kuotaSantri=DB.get('gh_kuota_santri',{});
 var defaultKuota=DB.get('gh_default_kuota',DEFAULT_KUOTA);
 var aktivitas=DB.get('gh_aktivitas',[]);
+/* SEED SANTRI PER KELAS (TA 2026-2027) - gabung sekali, tidak menimpa data yang sudah ada */
+var SEED_VER=1;
+(function(){try{
+  if(!window.SEED_SANTRI||!window.SEED_SANTRI.length)return;
+  if(parseInt(localStorage.getItem('gh_seed_ver')||'0',10)>=SEED_VER)return;
+  var ada={},seedN={},tambah=0;
+  santri.forEach(function(s){var k=String(s.nama||'').toLowerCase()+'|'+String(s.kelas||'').toLowerCase();ada[k]=(ada[k]||0)+1});
+  window.SEED_SANTRI.forEach(function(s){var k=s.nama.toLowerCase()+'|'+s.kelas.toLowerCase();seedN[k]=(seedN[k]||0)+1;
+    if((ada[k]||0)>=seedN[k])return;
+    if(santri.some(function(x){return x.id===s.id}))s.id=nextId();
+    santri.push({id:s.id,nama:s.nama,kelas:s.kelas,kontak:s.kontak||''});ada[k]=(ada[k]||0)+1;tambah++});
+  if(window.SEED_KELAS){var kk=false;window.SEED_KELAS.forEach(function(k){if(!daftarKelas.some(function(x){return String(x).toLowerCase()===k.toLowerCase()})){daftarKelas.push(k);kk=true}});if(kk)DB.set('gh_kelas',daftarKelas)}
+  if(tambah)DB.set('gh_santri',santri);
+  localStorage.setItem('gh_seed_ver',String(SEED_VER));
+}catch(e){}})();
+
 
 function getAdminPassword(){return DB.get('gh_admin_pass',ADMIN_PASSWORD)}
 function getUserPassword(){return DB.get('gh_user_pass',USER_PASSWORD)}
