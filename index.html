@@ -199,7 +199,7 @@
     </section>
 
     <section class="section" id="normal">
-      <div class="header"><div><h1>Izin Normal</h1><p>Data izin normal</p></div><div class="header-actions"><button class="btn btn-excel" onclick="exportSection('normal')"><i class="fa-solid fa-file-excel"></i> <span>Export Excel</span></button></div></div>
+      <div class="header"><div><h1>Izin Normal</h1><p>Data izin normal</p></div><div class="header-actions"><button class="btn btn-primary" onclick="cetakKartuMassal('Normal')" title="Cetak 4 kartu per lembar A4 (memakai centang bila ada)"><i class="fa-solid fa-print"></i> <span>Cetak Kartu PDF</span></button><button class="btn btn-excel" onclick="exportSection('normal')"><i class="fa-solid fa-file-excel"></i> <span>Export Excel</span></button></div></div>
       <div class="card">
         <div class="filter-bar"><div class="form-group"><label>Dari Tanggal</label><input type="date" id="filterDari" onchange="renderAll()"></div><div class="form-group"><label>Sampai Tanggal</label><input type="date" id="filterSampai" onchange="renderAll()"></div><button class="btn" onclick="resetFilterTanggal()"><i class="fa-solid fa-rotate-left"></i> Reset</button></div>
         <div class="bulk-bar" id="bulkIzinBar" style="display:none;"><span id="bulkIzinCount">0 dipilih</span><button class="btn btn-sm btn-danger" onclick="bulkDeleteIzin()"><i class="fa-solid fa-trash"></i> Hapus Terpilih</button></div>
@@ -208,7 +208,7 @@
     </section>
 
     <section class="section" id="darurat">
-      <div class="header"><div><h1>Izin Darurat</h1><p>Data izin darurat</p></div><div class="header-actions"><button class="btn btn-excel" onclick="exportSection('darurat')"><i class="fa-solid fa-file-excel"></i> <span>Export Excel</span></button></div></div>
+      <div class="header"><div><h1>Izin Darurat</h1><p>Data izin darurat</p></div><div class="header-actions"><button class="btn btn-primary" onclick="cetakKartuMassal('Darurat')" title="Cetak 4 kartu per lembar A4 (memakai centang bila ada)"><i class="fa-solid fa-print"></i> <span>Cetak Kartu PDF</span></button><button class="btn btn-excel" onclick="exportSection('darurat')"><i class="fa-solid fa-file-excel"></i> <span>Export Excel</span></button></div></div>
       <div class="card">
         <div class="bulk-bar" id="bulkDaruratBar" style="display:none;"><span id="bulkDaruratCount">0 dipilih</span><button class="btn btn-sm btn-danger" onclick="bulkDeleteIzin()"><i class="fa-solid fa-trash"></i> Hapus Terpilih</button></div>
         <div class="table-wrap"><table><thead><tr><th class="th-check"><input type="checkbox" class="chk-pel" id="chkAllDarurat" onclick="toggleAllIzin(this.checked)"></th><th>Tanggal</th><th>Nama</th><th>Kelas</th><th>Wali Kelas</th><th>Penjemput</th><th>Alasan</th><th>Batas Kembali</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="daruratTable"></tbody></table></div>
@@ -1022,6 +1022,58 @@ function doSearchGlobal(q){q=(q||'').toLowerCase().trim();if(!q){$('searchResult
 /* KARTU IZIN */
 function showKartuIzin(id){var i=izin.find(function(x){return x.id===id});if(!i){showToast('Data izin tidak ditemukan','error');return}lastKartuIzin=i;$('kartuIzinPreview').innerHTML='<div class="kartu-izin"><div class="kartu-izin-header"><i class="fa-solid fa-mosque"></i><h2>SURAT IZIN PULANG</h2><p>Pondok Pesantren Risalah</p></div><div class="kartu-izin-body"><div class="kartu-izin-row"><span class="lbl">Nama Santri</span><span class="val">'+escapeHtml(i.nama)+'</span></div><div class="kartu-izin-row"><span class="lbl">Kelas</span><span class="val">'+escapeHtml(i.kelas)+'</span></div><div class="kartu-izin-row"><span class="lbl">Jenis Izin</span><span class="val">'+escapeHtml(i.jenis)+'</span></div><div class="kartu-izin-row"><span class="lbl">Tanggal Izin</span><span class="val">'+formatDateID(i.tanggal)+'</span></div><div class="kartu-izin-row"><span class="lbl">Batas Kembali</span><span class="val">'+formatDateID(i.batasKembali)+'</span></div><div class="kartu-izin-row"><span class="lbl">Alasan</span><span class="val">'+escapeHtml(i.alasan)+'</span></div><div class="kartu-izin-row"><span class="lbl">Penjemput</span><span class="val">'+escapeHtml(i.penjemput||'-')+'</span></div><div class="kartu-izin-row"><span class="lbl">Status</span><span class="val">'+escapeHtml(i.status)+'</span></div></div></div>';openModal('modalKartuIzin')}
 function cetakKartuIzin(){if(!lastKartuIzin){showToast('Tidak ada data','error');return}if(!window.jspdf){showToast('Library PDF belum termuat','error');return}var i=lastKartuIzin;var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:[100,150]});doc.setFillColor(1,87,129);doc.rect(0,0,100,150,'F');doc.setTextColor(255,255,255);doc.setFontSize(10);doc.text('PONDOK PESANTREN RISALAH',50,15,{align:'center'});doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text('SURAT IZIN PULANG',50,25,{align:'center'});doc.setFillColor(255,255,255);doc.roundedRect(5,35,90,105,3,3,'F');doc.setTextColor(30,41,59);doc.setFontSize(9);doc.setFont('helvetica','normal');var y=45;var rows=[['Nama',i.nama],['Kelas',i.kelas],['Jenis Izin',i.jenis],['Tgl Izin',formatDateID(i.tanggal)],['Batas Kembali',formatDateID(i.batasKembali)],['Alasan',i.alasan],['Penjemput',i.penjemput||'-'],['Status',i.status]];rows.forEach(function(r){doc.setTextColor(100,116,139);doc.text(r[0],10,y);doc.setTextColor(30,41,59);doc.setFont('helvetica','bold');doc.text(': '+String(r[1]||'-').substring(0,35),40,y);doc.setFont('helvetica','normal');y+=8});doc.setFontSize(7);doc.setTextColor(148,163,184);doc.text('Dicetak: '+new Date().toLocaleString('id-ID'),50,140,{align:'center'});doc.save('kartu-izin-'+i.nama.replace(/\s+/g,'_')+'.pdf');showToast('Kartu izin diunduh')}
+
+/* ===== CETAK KARTU IZIN MASSAL (4 KARTU PER A4) ===== */
+function kartuMassalList(jenis){var filtered=getFilteredIzin();var list=filtered.filter(function(i){return i.jenis===jenis});var sel=Object.keys(izinSelectedIds).filter(function(k){return izinSelectedIds[k]});if(sel.length){var m={};sel.forEach(function(k){m[k]=true});var bySel=list.filter(function(i){return m[i.id]});if(bySel.length)list=bySel}return list}
+function kartuRingkas(t,max){t=String(t===undefined||t===null||t===''?'-':t);if(t.length<=max)return t;return t.slice(0,max-1)+'…'}
+function drawKartuIzinA4(doc,it,x,y,w,hh){
+  var i=it;var wali=i.waliKelas||getWaliKelas(i.kelas)||'-';
+  doc.setDrawColor(203,213,225);doc.setLineWidth(0.35);doc.rect(x,y,w,hh);
+  doc.setFillColor(1,87,129);doc.rect(x,y,w,20,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.text('PONDOK PESANTREN RISALAH',x+w/2,y+6,{align:'center'});
+  doc.setFontSize(11);doc.text('KARTU IZIN PULANG',x+w/2,y+13.5,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(6);doc.text('IZIN '+String(i.jenis||'').toUpperCase()+'  ·  No. '+i.id,x+w/2,y+18,{align:'center'});
+  var rows=[['Nama Santri',i.nama],['Kelas',i.kelas],['Wali Kelas',wali],['Tanggal Izin',formatDateID(i.tanggal)],['Batas Kembali',formatDateID(i.batasKembali)],['Alasan',i.alasan||'-'],['Penjemput',i.penjemput||'-'],['Status',i.status||'-']];
+  var yy=y+30;
+  rows.forEach(function(r){
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,116,139);doc.text(String(r[0]),x+5,yy);
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(15,23,42);
+    doc.text(kartuRingkas(r[1],36),x+31,yy);
+    doc.setDrawColor(241,245,249);doc.setLineWidth(0.15);doc.line(x+5,yy+2.6,x+w-5,yy+2.6);
+    yy+=8.2;
+  });
+  var boxY=y+hh-33;
+  doc.setDrawColor(226,232,240);doc.setLineWidth(0.2);doc.line(x+5,boxY,x+w-5,boxY);
+  doc.setFont('helvetica','normal');doc.setFontSize(5.8);doc.setTextColor(100,116,139);
+  doc.text('Kartu ini wajib dibawa saat meninggalkan pondok dan diserahkan kembali saat kembali.',x+w/2,boxY+4.5,{align:'center'});
+  var bw=(w-14)/2;
+  doc.setDrawColor(203,213,225);doc.setLineWidth(0.3);
+  doc.rect(x+5,boxY+7,bw,17);doc.rect(x+5+bw+4,boxY+7,bw,17);
+  doc.setFontSize(5.8);doc.setTextColor(148,163,184);
+  doc.text('Tanda Tangan Santri',x+5+bw/2,boxY+27.5,{align:'center'});
+  doc.text('Tanda Tangan Wali Kelas',x+5+bw+4+bw/2,boxY+27.5,{align:'center'});
+  doc.setFontSize(5.2);doc.setTextColor(148,163,184);
+  doc.text('Dicetak: '+new Date().toLocaleString('id-ID'),x+w/2,y+hh-2.5,{align:'center'});
+}
+function cetakKartuMassal(jenis){
+  if(!window.jspdf||!window.jspdf.jsPDF){showToast('Library PDF belum termuat, coba muat ulang halaman','error');return}
+  var list=kartuMassalList(jenis);
+  if(!list.length){showToast('Tidak ada kartu izin '+jenis+' untuk dicetak','error');return}
+  var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var CW=94,CH=137,GX=6,GY=7,MX=8,MY=8;
+  var pos=[[MX,MY],[MX+CW+GX,MY],[MX,MY+CH+GY],[MX+CW+GX,MY+CH+GY]];
+  list.forEach(function(it,idx){
+    if(idx>0&&idx%4===0)doc.addPage();
+    var p=pos[idx%4];
+    drawKartuIzinA4(doc,it,p[0],p[1],CW,CH);
+  });
+  var total=doc.internal.getNumberOfPages();
+  for(var p=1;p<=total;p++){doc.setPage(p);doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(148,163,184);doc.text('Halaman '+p+' dari '+total+'  ·  '+list.length+' kartu',210-MX,297-4,{align:'right'})}
+  doc.save('kartu-izin-'+String(jenis).toLowerCase()+'-'+todayStr()+'.pdf');
+  logAktivitas('Cetak Kartu Massal',list.length+' kartu izin '+jenis+' ('+total+' halaman A4)');
+  showToast(list.length+' kartu izin dicetak · '+total+' halaman A4');
+}
 
 /* AUTOCOMPLETE */
 function levenshtein(a,b){if(!a.length)return b.length;if(!b.length)return a.length;var m=[];for(var i=0;i<=b.length;i++)m[i]=[i];for(var j=0;j<=a.length;j++)m[0][j]=j;for(i=1;i<=b.length;i++){for(j=1;j<=a.length;j++){m[i][j]=b.charAt(i-1)===a.charAt(j-1)?m[i-1][j-1]:Math.min(m[i-1][j-1]+1,m[i][j-1]+1,m[i-1][j]+1)}}return m[b.length][a.length]}
